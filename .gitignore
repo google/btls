@@ -1,0 +1,29 @@
+# Editor backup files
+*~
+\#*
+.\#*
+.*.swp
+
+# Sandboxes
+cabal-dev/
+.hsenv*/
+hsenv.log
+.cabal-sandbox/
+cabal.sandbox.config
+
+# GHC
+*.hi
+*.o
+
+# Cabal
+cabal.project.local
+dist*/
+
+# Third-party builds
+third_party/boringssl/build
+third_party/boringssl/lib
+
+
+# Local Variables:
+# mode: conf
+# End:
