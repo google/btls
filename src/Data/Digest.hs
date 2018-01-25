@@ -2,4 +2,4 @@ module Data.Digest
   ( Digest
   ) where
 
-import Data.Digest.Evp
+import Data.Digest.Internal (Digest)

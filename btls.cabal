@@ -21,6 +21,9 @@ library
   hs-source-dirs:      src
   default-language:    Haskell2010
   other-extensions:    CApiFFI
+                     , ExistentialQuantification
+                     , NamedFieldPuns
+                     , Rank2Types
   build-tools:         hsc2hs
   include-dirs:        third_party/boringssl/src/include
   ghc-options:         -Weverything
@@ -31,7 +34,7 @@ library
                        -optl-Wl,-z,relro -optl-Wl,-z,now -optl-Wl,-s
   exposed-modules:     Data.Digest
                      , Data.Digest.Sha2
-  other-modules:       Data.Digest.Evp
+  other-modules:       Data.Digest.Internal
   -- Use special names for the BoringSSL libraries to avoid accidentally pulling
   -- in OpenSSL.
   extra-libraries:     btls_crypto
