@@ -8,6 +8,7 @@ import Control.Exception (assert)
 import Data.Bits (Bits((.&.)), shiftR)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as ByteString
+import qualified Data.ByteString.Lazy as ByteString.Lazy
 import qualified Data.ByteString.Unsafe as ByteString
 import Data.Char (intToDigit)
 import Data.Word (Word8)
@@ -17,6 +18,8 @@ import Foreign.Marshal.Unsafe (unsafeLocalState)
 import Unsafe.Coerce (unsafeCoerce)
 
 import Cleanse (mallocCleansablePtr)
+
+type LazyByteString = ByteString.Lazy.ByteString
 
 -- | A hash algorithm which follows the standard initialize-update-finalize
 -- pattern.
@@ -55,7 +58,7 @@ instance Show Digest where
       hexit = intToDigit . fromIntegral :: Word8 -> Char
 
 -- | Hashes according to the given 'Algo'.
-hash :: Algo -> ByteString -> Digest
+hash :: Algo -> LazyByteString -> Digest
 hash (Algo {mdLen, mdInit, mdUpdate, mdFinal}) bytes =
   let mdLen' = fromIntegral mdLen :: Int
   in unsafeLocalState $ do
@@ -65,10 +68,7 @@ hash (Algo {mdLen, mdInit, mdUpdate, mdFinal}) bytes =
      ctxFP <- mallocCleansablePtr
      withForeignPtr ctxFP $ \ctx -> do
        alwaysSucceeds $ mdInit ctx
-       -- 'mdUpdate' treats its @buf@ argument as @const@, so the sharing
-       -- inherent in 'ByteString.unsafeUseAsCStringLen' is fine.
-       ByteString.unsafeUseAsCStringLen bytes $ \(buf, len) ->
-         alwaysSucceeds $ mdUpdate ctx buf (fromIntegral len)
+       mapM_ (updateBytes ctx) (ByteString.Lazy.toChunks bytes)
        d <-
          -- We could allocate another cleansable 'ForeignPtr' to store the
          -- digest, but we're going to be returning a copy of it as a ByteString
@@ -84,3 +84,9 @@ hash (Algo {mdLen, mdInit, mdUpdate, mdFinal}) bytes =
            -- 'Ptr CChar' before it does its 'ByteString' ingestion.
            ByteString.packCStringLen (unsafeCoerce mdOut, mdLen')
        return (Digest d)
+  where
+    updateBytes ctx chunk =
+      -- 'mdUpdate' treats its @buf@ argument as @const@, so the sharing
+      -- inherent in 'ByteString.unsafeUseAsCStringLen' is fine.
+      ByteString.unsafeUseAsCStringLen chunk $ \(buf, len) ->
+        alwaysSucceeds $ mdUpdate ctx buf (fromIntegral len)

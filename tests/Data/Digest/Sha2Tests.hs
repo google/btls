@@ -6,6 +6,7 @@ module Data.Digest.Sha2Tests
 
 import Data.ByteString.Char8 (ByteString)
 import qualified Data.ByteString.Char8 as ByteString
+import qualified Data.ByteString.Lazy as ByteString.Lazy
 import System.IO (hClose, hGetContents, hSetBinaryMode)
 import System.Process
        (CreateProcess(std_in, std_out), StdStream(CreatePipe),
@@ -532,10 +533,10 @@ testAgainstOpenssl f flag =
 
 -- Convenience functions.
 
-sha224sum = show . sha224
+sha224sum = show . sha224 . ByteString.Lazy.fromStrict
 
-sha256sum = show . sha256
+sha256sum = show . sha256 . ByteString.Lazy.fromStrict
 
-sha384sum = show . sha384
+sha384sum = show . sha384 . ByteString.Lazy.fromStrict
 
-sha512sum = show . sha512
+sha512sum = show . sha512 . ByteString.Lazy.fromStrict

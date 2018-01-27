@@ -8,7 +8,7 @@ module Data.Digest.Sha2
   , sha512
   ) where
 
-import Data.ByteString (ByteString)
+import Data.ByteString.Lazy (ByteString)
 import Foreign (Ptr, Storable(alignment, sizeOf))
 import Foreign.C.Types
 
