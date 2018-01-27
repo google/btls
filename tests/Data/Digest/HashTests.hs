@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Data.Digest.HashTests
-  ( goTestCase
+  ( tableTestCase
   , testAgainstCoreutils
   , testAgainstOpenssl
   ) where
@@ -18,8 +18,8 @@ import Test.Tasty (TestTree)
 import Test.Tasty.HUnit ((@?=), testCase)
 import Test.Tasty.SmallCheck (Property, monadic, over)
 
-goTestCase :: (ByteString -> String) -> (String, ByteString) -> TestTree
-goTestCase f (output, input) = testCase description (f input @?= output)
+tableTestCase :: (ByteString -> String) -> (String, ByteString) -> TestTree
+tableTestCase f (output, input) = testCase description (f input @?= output)
   where
     description =
       let (x, y) = ByteString.splitAt 11 input

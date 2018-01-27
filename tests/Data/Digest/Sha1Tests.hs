@@ -10,7 +10,7 @@ import Test.Tasty.HUnit ((@?=), testCase)
 import Test.Tasty.SmallCheck (testProperty)
 
 import Data.Digest.HashTests
-       (goTestCase, testAgainstCoreutils, testAgainstOpenssl)
+       (tableTestCase, testAgainstCoreutils, testAgainstOpenssl)
 import Data.Digest.Sha1
 
 tests :: TestTree
@@ -40,7 +40,7 @@ testNistExamples =
 testGoExamples =
   testGroup "Go tests" $
   map
-    (goTestCase sha1sum)
+    (tableTestCase sha1sum)
     [ ( "76245dbf96f661bd221046197ab8b9f063f11bad"
       , "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n")
     , ("da39a3ee5e6b4b0d3255bfef95601890afd80709", "")
