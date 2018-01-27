@@ -4,19 +4,13 @@ module Data.Digest.Sha2Tests
   ( tests
   ) where
 
-import Data.ByteString.Char8 (ByteString)
-import qualified Data.ByteString.Char8 as ByteString
 import qualified Data.ByteString.Lazy as ByteString.Lazy
-import System.IO (hClose, hGetContents, hSetBinaryMode)
-import System.Process
-       (CreateProcess(std_in, std_out), StdStream(CreatePipe),
-        createProcess_, proc)
-import qualified Test.SmallCheck.Series.ByteString
-       as ByteString.Series
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit ((@?=), testCase)
-import Test.Tasty.SmallCheck (monadic, over, testProperty)
+import Test.Tasty.SmallCheck (testProperty)
 
+import Data.Digest.HashTests
+       (goTestCase, testAgainstCoreutils, testAgainstOpenssl)
 import Data.Digest.Sha2
 
 tests :: TestTree
@@ -85,13 +79,6 @@ testNistSha512 =
 -- | Test vectors used to test the Go SHA-2 implementations.
 testGoExamples =
   testGroup "Go tests" [testGoSha224, testGoSha256, testGoSha384, testGoSha512]
-
-goTestCase :: (ByteString -> String) -> (String, ByteString) -> TestTree
-goTestCase f (output, input) = testCase description (f input @?= output)
-  where
-    description =
-      let (x, y) = ByteString.splitAt 11 input
-      in show (x `ByteString.append` if ByteString.null y then "" else "...")
 
 testGoSha224 =
   testGroup "SHA-224" $
@@ -498,23 +485,6 @@ testCoreutilsConformance =
     , testProperty "SHA-512" (testAgainstCoreutils sha512sum "sha512sum")
     ]
 
-testAgainstCoreutils f prog =
-  over ByteString.Series.enumW8s $ \s ->
-    monadic $ do
-      theirs <- runExternal (proc prog ["-b"]) s
-      return (f s == head (words theirs))
-
--- | Runs an external hashing command with the specified standard input. Assumes
--- that the process will exit when its standard input is closed.
-runExternal :: CreateProcess -> ByteString -> IO String
-runExternal p s = do
-  (Just stdin, Just stdout, _, _) <-
-    createProcess_ "runExternal" (p {std_in = CreatePipe, std_out = CreatePipe})
-  hSetBinaryMode stdin True
-  ByteString.hPut stdin s
-  hClose stdin -- causes process to exit
-  hGetContents stdout
-
 -- | Tests our SHA-2 implementations against openssl(1)'s.
 testOpensslConformance =
   testGroup
@@ -524,12 +494,6 @@ testOpensslConformance =
     , testProperty "SHA-384" (testAgainstOpenssl sha384sum "sha384")
     , testProperty "SHA-512" (testAgainstOpenssl sha512sum "sha512")
     ]
-
-testAgainstOpenssl f flag =
-  over ByteString.Series.enumW8s $ \s ->
-    monadic $ do
-      theirs <- runExternal (proc "openssl" ["dgst", '-' : flag]) s
-      return (f s == words theirs !! 1)
 
 -- Convenience functions.
 

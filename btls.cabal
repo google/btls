@@ -33,6 +33,7 @@ library
                        -Wno-safe -Wno-unsafe
                        -optl-Wl,-z,relro -optl-Wl,-z,now -optl-Wl,-s
   exposed-modules:     Data.Digest
+                     , Data.Digest.Sha1
                      , Data.Digest.Sha2
   other-modules:       Cleanse
                      , Data.Digest.Internal
@@ -56,7 +57,9 @@ test-suite tests
                        -Wno-safe -Wno-unsafe
                        -optl-Wl,-z,relro -optl-Wl,-z,now -optl-Wl,-s
   main-is:             Tests.hs
-  other-modules:       Data.Digest.Sha2Tests
+  other-modules:       Data.Digest.HashTests
+                     , Data.Digest.Sha1Tests
+                     , Data.Digest.Sha2Tests
   build-depends:       base >=4.9 && <4.10
                      , btls
                      , bytestring >=0.10 && <0.11
