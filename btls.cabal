@@ -33,9 +33,6 @@ library
                        -Wno-safe -Wno-unsafe
                        -optl-Wl,-z,relro -optl-Wl,-z,now -optl-Wl,-s
   exposed-modules:     Data.Digest
-                     , Data.Digest.Md5
-                     , Data.Digest.Sha1
-                     , Data.Digest.Sha2
   other-modules:       Data.Digest.Internal
   -- Use special names for the BoringSSL libraries to avoid accidentally pulling
   -- in OpenSSL.
@@ -57,7 +54,8 @@ test-suite tests
                        -Wno-safe -Wno-unsafe
                        -optl-Wl,-z,relro -optl-Wl,-z,now -optl-Wl,-s
   main-is:             Tests.hs
-  other-modules:       Data.Digest.HashTests
+  other-modules:       Data.DigestTests
+                     , Data.Digest.HashTests
                      , Data.Digest.Md5Tests
                      , Data.Digest.Sha1Tests
                      , Data.Digest.Sha2Tests

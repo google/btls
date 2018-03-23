@@ -10,12 +10,12 @@ import Test.Tasty.SmallCheck (testProperty)
 
 import Data.Digest.HashTests
        (tableTestCase, testAgainstCoreutils, testAgainstOpenssl)
-import Data.Digest.Md5
+import Data.Digest (hash, md5)
 
 tests :: TestTree
 tests =
   testGroup
-    "Data.Digest.Md5"
+    "MD5"
     [ testRfcExamples
     , testGoExamples
     , testCoreutilsConformance
@@ -106,4 +106,4 @@ testOpensslConformance =
 
 -- Convenience function.
 
-md5sum = show . md5 . ByteString.Lazy.fromStrict
+md5sum = show . hash md5 . ByteString.Lazy.fromStrict

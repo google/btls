@@ -31,9 +31,6 @@ data Engine
 -- | The BoringSSL @EVP_MD@ type, representing a hash algorithm.
 data EvpMd
 
--- | A convenience alias for @Ptr EvpMd@.
-type Algo = Ptr EvpMd
-
 -- | The BoringSSL @EVP_MD_CTX@ type, representing the state of a pending
 -- hashing operation.
 data EvpMdCtx
@@ -103,6 +100,9 @@ foreign import ccall "&btlsFinalizeEvpMdCtx"
 
 -- Finally, we're ready to actually implement the hashing interface.
 
+-- | A cryptographic hash function.
+newtype Algorithm = Algorithm (Ptr EvpMd)
+
 -- | The result of a hash operation.
 newtype Digest =
   Digest ByteString
@@ -115,9 +115,9 @@ instance Show Digest where
         hexit (b `shiftR` 4 .&. 0x0f) : hexit (b .&. 0x0f) : xs
       hexit = intToDigit . fromIntegral :: Word8 -> Char
 
--- | Hashes according to the given 'Algo'.
-hash :: Algo -> LazyByteString -> Digest
-hash md bytes =
+-- | Hashes according to the given 'Algorithm'.
+hash :: Algorithm -> LazyByteString -> Digest
+hash (Algorithm md) bytes =
   unsafeLocalState $ do
     ctxFP <- mallocEvpMdCtx
     withForeignPtr ctxFP $ \ctx -> do

@@ -11,12 +11,12 @@ import Test.Tasty.SmallCheck (testProperty)
 
 import Data.Digest.HashTests
        (tableTestCase, testAgainstCoreutils, testAgainstOpenssl)
-import Data.Digest.Sha1
+import Data.Digest (hash, sha1)
 
 tests :: TestTree
 tests =
   testGroup
-    "Data.Digest.Sha1"
+    "SHA-1"
     [ testNistExamples
     , testGoExamples
     , testCoreutilsConformance
@@ -107,4 +107,4 @@ testOpensslConformance =
 
 -- Convenience function.
 
-sha1sum = show . sha1 . ByteString.Lazy.fromStrict
+sha1sum = show . hash sha1 . ByteString.Lazy.fromStrict

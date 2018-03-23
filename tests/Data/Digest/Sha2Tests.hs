@@ -11,12 +11,12 @@ import Test.Tasty.SmallCheck (testProperty)
 
 import Data.Digest.HashTests
        (tableTestCase, testAgainstCoreutils, testAgainstOpenssl)
-import Data.Digest.Sha2
+import Data.Digest (hash, sha224, sha256, sha384, sha512)
 
 tests :: TestTree
 tests =
   testGroup
-    "Data.Digest.Sha2"
+    "SHA-2"
     [ testNistExamples
     , testGoExamples
     , testCoreutilsConformance
@@ -497,10 +497,10 @@ testOpensslConformance =
 
 -- Convenience functions.
 
-sha224sum = show . sha224 . ByteString.Lazy.fromStrict
+sha224sum = show . hash sha224 . ByteString.Lazy.fromStrict
 
-sha256sum = show . sha256 . ByteString.Lazy.fromStrict
+sha256sum = show . hash sha256 . ByteString.Lazy.fromStrict
 
-sha384sum = show . sha384 . ByteString.Lazy.fromStrict
+sha384sum = show . hash sha384 . ByteString.Lazy.fromStrict
 
-sha512sum = show . sha512 . ByteString.Lazy.fromStrict
+sha512sum = show . hash sha512 . ByteString.Lazy.fromStrict

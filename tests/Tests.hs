@@ -4,16 +4,7 @@ module Main
 
 import Test.Tasty (defaultMain, testGroup)
 
-import qualified Data.Digest.Md5Tests
-import qualified Data.Digest.Sha1Tests
-import qualified Data.Digest.Sha2Tests
+import qualified Data.DigestTests
 
 main :: IO ()
-main =
-  defaultMain $
-  testGroup
-    "btls"
-    [ Data.Digest.Md5Tests.tests
-    , Data.Digest.Sha1Tests.tests
-    , Data.Digest.Sha2Tests.tests
-    ]
+main = defaultMain $ testGroup "btls" [Data.DigestTests.tests]
