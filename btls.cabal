@@ -24,6 +24,7 @@ library
                      , ExistentialQuantification
                      , NamedFieldPuns
                      , Rank2Types
+                     , ScopedTypeVariables
   build-tools:         hsc2hs
   include-dirs:        third_party/boringssl/src/include
   ghc-options:         -Weverything
@@ -33,7 +34,9 @@ library
                        -Wno-safe -Wno-unsafe
                        -optl-Wl,-z,relro -optl-Wl,-z,now -optl-Wl,-s
   exposed-modules:     Data.Digest
+                     , Data.Hmac
   other-modules:       Data.Digest.Internal
+                     , Foreign.Ptr.ConstantTimeEquals
   -- Use special names for the BoringSSL libraries to avoid accidentally pulling
   -- in OpenSSL.
   extra-libraries:     btls_crypto
@@ -59,6 +62,7 @@ test-suite tests
                      , Data.Digest.Md5Tests
                      , Data.Digest.Sha1Tests
                      , Data.Digest.Sha2Tests
+                     , Data.HmacTests
   build-depends:       base >=4.9 && <4.10
                      , btls
                      , bytestring >=0.10 && <0.11

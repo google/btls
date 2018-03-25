@@ -28,6 +28,9 @@ type LazyByteString = ByteString.Lazy.ByteString
 -- | The BoringSSL @ENGINE@ type.
 data Engine
 
+noEngine :: Ptr Engine
+noEngine = nullPtr
+
 -- | The BoringSSL @EVP_MD@ type, representing a hash algorithm.
 data EvpMd
 
@@ -137,7 +140,6 @@ hash (Algorithm md) bytes =
             ByteString.packCStringLen (unsafeCoerce mdOut, outSize)
       return (Digest d)
   where
-    noEngine = nullPtr :: Ptr Engine
     updateBytes ctx chunk =
       -- 'mdUpdate' treats its @buf@ argument as @const@, so the sharing
       -- inherent in 'ByteString.unsafeUseAsCStringLen' is fine.
