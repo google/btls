@@ -83,7 +83,7 @@ test-suite tests
   build-depends:       base >=4.9 && <4.10
                      , btls
                      , bytestring >=0.10 && <0.11
-                     , process >=1.4.3 && <1.5
+                     , process >=1.4.2 && <1.5
                      , smallcheck >=1.1.1 && <1.2
                      , smallcheck-series >=0.2 && <0.7
                      , tasty >=0.11.0.4 && <0.12
