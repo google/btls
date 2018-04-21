@@ -19,7 +19,7 @@ synopsis:            BoringSSL-backed TLS and cryptography library
 description:
   A TLS and cryptography library backed by BoringSSL, Google's fork of OpenSSL.
 copyright:           2018 Google LLC
-license:             Apache-2.0 and OpenSSL
+license:             OtherLicense
 license-file:        LICENSE
 author:              Benjamin Barenblat
 maintainer:          bbaren@google.com
