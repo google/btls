@@ -30,14 +30,14 @@ noEngine = nullPtr
 
 -- | The BoringSSL @EVP_MD_CTX@ type, representing the state of a pending
 -- hashing operation.
-data EvpMdCtx
-{#pointer *EVP_MD_CTX as 'Ptr EvpMdCtx' -> EvpMdCtx nocode#}
+data EVPMDCtx
+{#pointer *EVP_MD_CTX as 'Ptr EVPMDCtx' -> EVPMDCtx nocode#}
 
 -- | The BoringSSL @EVP_MD@ type, representing a hash algorithm.
-data EvpMd
-{#pointer *EVP_MD as 'Ptr EvpMd' -> EvpMd nocode#}
+data EVPMD
+{#pointer *EVP_MD as 'Ptr EVPMD' -> EVPMD nocode#}
 
 -- | The BoringSSL @HMAC_CTX@ type, representing the state of a pending HMAC
 -- operation.
-data HmacCtx
-{#pointer *HMAC_CTX as 'Ptr HmacCtx' -> HmacCtx nocode#}
+data HMACCtx
+{#pointer *HMAC_CTX as 'Ptr HMACCtx' -> HMACCtx nocode#}

@@ -14,26 +14,26 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module Data.Digest.Md5Tests (tests) where
+module Data.Digest.MD5Tests (tests) where
 
 import qualified Data.ByteString.Lazy as ByteString.Lazy
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.SmallCheck (testProperty)
 
 import Data.Digest.HashTests
-  (tableTestCase, testAgainstCoreutils, testAgainstOpenssl)
+  (tableTestCase, testAgainstCoreutils, testAgainstOpenSSL)
 import Data.Digest (hash, md5)
 
 tests :: TestTree
 tests = testGroup "MD5"
-  [ testRfcExamples
+  [ testRFCExamples
   , testGoExamples
   , testCoreutilsConformance
-  , testOpensslConformance
+  , testOpenSSLConformance
   ]
 
 -- | MD5 example vectors from RFC 1321.
-testRfcExamples = testGroup "RFC 1321 examples" $
+testRFCExamples = testGroup "RFC 1321 examples" $
   map (tableTestCase md5sum)
     [ ("d41d8cd98f00b204e9800998ecf8427e", "")
     , ("0cc175b9c0f1b6a831c399e269772661", "a")
@@ -85,8 +85,8 @@ testCoreutilsConformance = testProperty "conformance with coreutils" $
   testAgainstCoreutils md5sum "md5sum"
 
 -- | Tests our MD5 implementation against openssl(1)'s.
-testOpensslConformance = testProperty "conformance with OpenSSL" $
-  testAgainstOpenssl md5sum "md5"
+testOpenSSLConformance = testProperty "conformance with OpenSSL" $
+  testAgainstOpenSSL md5sum "md5"
 
 -- Convenience function.
 md5sum = show . hash md5 . ByteString.Lazy.fromStrict

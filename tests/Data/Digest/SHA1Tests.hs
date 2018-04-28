@@ -14,7 +14,7 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module Data.Digest.Sha1Tests (tests) where
+module Data.Digest.SHA1Tests (tests) where
 
 import qualified Data.ByteString.Lazy as ByteString.Lazy
 import Test.Tasty (TestTree, testGroup)
@@ -22,7 +22,7 @@ import Test.Tasty.HUnit ((@?=), testCase)
 import Test.Tasty.SmallCheck (testProperty)
 
 import Data.Digest.HashTests
-  (tableTestCase, testAgainstCoreutils, testAgainstOpenssl)
+  (tableTestCase, testAgainstCoreutils, testAgainstOpenSSL)
 import Data.Digest (hash, sha1)
 
 tests :: TestTree
@@ -30,7 +30,7 @@ tests = testGroup "SHA-1"
   [ testNistExamples
   , testGoExamples
   , testCoreutilsConformance
-  , testOpensslConformance
+  , testOpenSSLConformance
   ]
 
 
@@ -83,8 +83,8 @@ testCoreutilsConformance = testProperty "conformance with coreutils" $
   testAgainstCoreutils sha1sum "sha1sum"
 
 -- | Tests our SHA-1 implementation against openssl(1)'s.
-testOpensslConformance = testProperty "conformance with OpenSSL" $
-  testAgainstOpenssl sha1sum "sha1"
+testOpenSSLConformance = testProperty "conformance with OpenSSL" $
+  testAgainstOpenSSL sha1sum "sha1"
 
 -- Convenience function.
 sha1sum = show . hash sha1 . ByteString.Lazy.fromStrict

@@ -21,10 +21,10 @@ import Data.Char (intToDigit)
 import Data.Word (Word8)
 import Foreign (Ptr)
 
-import Internal.Base (EvpMd)
+import Internal.Base (EVPMD)
 
 -- | A cryptographic hash function.
-newtype Algorithm = Algorithm (Ptr EvpMd)
+newtype Algorithm = Algorithm (Ptr EVPMD)
 
 -- | The result of a hash operation.
 newtype Digest = Digest ByteString

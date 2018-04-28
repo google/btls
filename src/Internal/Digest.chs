@@ -16,10 +16,10 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Internal.Digest
-  ( evpMd5, evpSha1, evpSha224, evpSha256, evpSha384, evpSha512
-  , mallocEvpMdCtx
+  ( evpMD5, evpSHA1, evpSHA224, evpSHA256, evpSHA384, evpSHA512
+  , mallocEVPMDCtx
   , evpDigestInitEx, evpDigestUpdate, evpDigestFinalEx
-  , evpMaxMdSize
+  , evpMaxMDSize
   ) where
 
 import Foreign
@@ -33,40 +33,40 @@ import Result
 
 #include <openssl/digest.h>
 
-evpMd5, evpSha1, evpSha224, evpSha256, evpSha384, evpSha512 :: Ptr EvpMd
-evpMd5    = {#call pure EVP_md5 as ^#}
-evpSha1   = {#call pure EVP_sha1 as ^#}
-evpSha224 = {#call pure EVP_sha224 as ^#}
-evpSha256 = {#call pure EVP_sha256 as ^#}
-evpSha384 = {#call pure EVP_sha384 as ^#}
-evpSha512 = {#call pure EVP_sha512 as ^#}
+evpMD5, evpSHA1, evpSHA224, evpSHA256, evpSHA384, evpSHA512 :: Ptr EVPMD
+evpMD5    = {#call pure EVP_md5 as ^#}
+evpSHA1   = {#call pure EVP_sha1 as ^#}
+evpSHA224 = {#call pure EVP_sha224 as ^#}
+evpSHA256 = {#call pure EVP_sha256 as ^#}
+evpSHA384 = {#call pure EVP_sha384 as ^#}
+evpSHA512 = {#call pure EVP_sha512 as ^#}
 
--- | Memory-safe allocator for 'EvpMdCtx'.
-mallocEvpMdCtx :: IO (ForeignPtr EvpMdCtx)
-mallocEvpMdCtx = do
+-- | Memory-safe allocator for 'EVPMDCtx'.
+mallocEVPMDCtx :: IO (ForeignPtr EVPMDCtx)
+mallocEVPMDCtx = do
   fp <- mallocForeignPtr
   withForeignPtr fp {#call EVP_MD_CTX_init as ^#}
-  addForeignPtrFinalizer btlsFinalizeEvpMdCtxPtr fp
+  addForeignPtrFinalizer btlsFinalizeEVPMDCtxPtr fp
   return fp
 
-foreign import ccall "&btlsFinalizeEvpMdCtx"
-  btlsFinalizeEvpMdCtxPtr :: FinalizerPtr EvpMdCtx
+foreign import ccall "&btlsFinalizeEVPMDCtx"
+  btlsFinalizeEVPMDCtxPtr :: FinalizerPtr EVPMDCtx
 
-evpDigestInitEx :: Ptr EvpMdCtx -> Ptr EvpMd -> Ptr Engine -> IO ()
+evpDigestInitEx :: Ptr EVPMDCtx -> Ptr EVPMD -> Ptr Engine -> IO ()
 evpDigestInitEx ctx md engine =
   requireSuccess $ {#call EVP_DigestInit_ex as ^#} ctx md engine
 
-evpDigestUpdate :: Ptr EvpMdCtx -> Ptr a -> CULong -> IO ()
+evpDigestUpdate :: Ptr EVPMDCtx -> Ptr a -> CULong -> IO ()
 evpDigestUpdate ctx md bytes =
   alwaysSucceeds $ {#call EVP_DigestUpdate as ^#} ctx (asVoidPtr md) bytes
 
-evpDigestFinalEx :: Ptr EvpMdCtx -> Ptr CUChar -> Ptr CUInt -> IO ()
+evpDigestFinalEx :: Ptr EVPMDCtx -> Ptr CUChar -> Ptr CUInt -> IO ()
 evpDigestFinalEx ctx mdOut outSize =
   alwaysSucceeds $ {#call EVP_DigestFinal_ex as ^#} ctx mdOut outSize
 
-evpMaxMdSize :: Int
-evpMaxMdSize = {#const EVP_MAX_MD_SIZE#}
+evpMaxMDSize :: Int
+evpMaxMDSize = {#const EVP_MAX_MD_SIZE#}
 
-instance Storable EvpMdCtx where
+instance Storable EVPMDCtx where
   sizeOf _ = {#sizeof EVP_MD_CTX#}
   alignment _ = {#alignof EVP_MD_CTX#}

@@ -17,7 +17,7 @@
 module Data.Digest.HashTests
   ( tableTestCase
   , testAgainstCoreutils
-  , testAgainstOpenssl
+  , testAgainstOpenSSL
   ) where
 
 import Data.ByteString (ByteString)
@@ -55,8 +55,8 @@ runExternal p s = do
   hClose stdin -- causes process to exit
   hGetContents stdout
 
-testAgainstOpenssl :: (ByteString -> String) -> String -> Property IO
-testAgainstOpenssl f flag =
+testAgainstOpenSSL :: (ByteString -> String) -> String -> Property IO
+testAgainstOpenSSL f flag =
   over ByteString.Series.enumW8s $ \s ->
     monadic $ do
       theirs <- runExternal (proc "openssl" ["dgst", '-' : flag]) s

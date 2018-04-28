@@ -48,13 +48,13 @@ library
                        -Wno-safe -Wno-unsafe
                        -optl-Wl,-z,relro -optl-Wl,-z,now -optl-Wl,-s
   exposed-modules:     Data.Digest
-                     , Data.Hmac
+                     , Data.HMAC
   other-modules:       Data.Digest.Internal
                      , Foreign.Ptr.Cast
                      , Foreign.Ptr.ConstantTimeEquals
                      , Internal.Base
                      , Internal.Digest
-                     , Internal.Hmac
+                     , Internal.HMAC
                      , Result
   c-sources:           cbits/btls.c
   -- Use special names for the BoringSSL libraries to avoid accidentally pulling
@@ -79,10 +79,10 @@ test-suite tests
   main-is:             Tests.hs
   other-modules:       Data.DigestTests
                      , Data.Digest.HashTests
-                     , Data.Digest.Md5Tests
-                     , Data.Digest.Sha1Tests
-                     , Data.Digest.Sha2Tests
-                     , Data.HmacTests
+                     , Data.Digest.MD5Tests
+                     , Data.Digest.SHA1Tests
+                     , Data.Digest.SHA2Tests
+                     , Data.HMACTests
   build-depends:       base >=4.9 && <4.10
                      , btls
                      , bytestring >=0.10 && <0.11

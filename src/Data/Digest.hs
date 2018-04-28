@@ -35,23 +35,23 @@ import Internal.Digest
 type LazyByteString = ByteString.Lazy.ByteString
 
 md5, sha1, sha224, sha256, sha384, sha512 :: Algorithm
-md5    = Algorithm evpMd5
-sha1   = Algorithm evpSha1
-sha224 = Algorithm evpSha224
-sha256 = Algorithm evpSha256
-sha384 = Algorithm evpSha384
-sha512 = Algorithm evpSha512
+md5    = Algorithm evpMD5
+sha1   = Algorithm evpSHA1
+sha224 = Algorithm evpSHA224
+sha256 = Algorithm evpSHA256
+sha384 = Algorithm evpSHA384
+sha512 = Algorithm evpSHA512
 
 -- | Hashes according to the given 'Algorithm'.
 hash :: Algorithm -> LazyByteString -> Digest
 hash (Algorithm md) bytes =
   unsafeLocalState $ do
-    ctxFP <- mallocEvpMdCtx
+    ctxFP <- mallocEVPMDCtx
     withForeignPtr ctxFP $ \ctx -> do
       evpDigestInitEx ctx md noEngine
       mapM_ (updateBytes ctx) (ByteString.Lazy.toChunks bytes)
       d <-
-        allocaArray evpMaxMdSize $ \mdOut ->
+        allocaArray evpMaxMDSize $ \mdOut ->
           alloca $ \pOutSize -> do
             evpDigestFinalEx ctx mdOut pOutSize
             outSize <- fromIntegral <$> peek pOutSize

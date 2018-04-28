@@ -12,9 +12,9 @@
 -- License for the specific language governing permissions and limitations under
 -- the License.
 
-module Data.Hmac
+module Data.HMAC
   ( SecretKey(SecretKey)
-  , Hmac
+  , HMAC
   , hmac
   ) where
 
@@ -30,7 +30,7 @@ import Data.Digest.Internal (Algorithm(Algorithm), Digest(Digest))
 import Foreign.Ptr.ConstantTimeEquals (constantTimeEquals)
 import Internal.Base
 import Internal.Digest
-import Internal.Hmac
+import Internal.HMAC
 
 type LazyByteString = ByteString.Lazy.ByteString
 
@@ -41,29 +41,29 @@ newtype SecretKey = SecretKey ByteString
 
 -- | A hash-based message authentication code. Equality comparisons on this type
 -- are constant-time.
-newtype Hmac = Hmac ByteString
+newtype HMAC = HMAC ByteString
 
-instance Eq Hmac where
-  (Hmac a) == (Hmac b) =
+instance Eq HMAC where
+  (HMAC a) == (HMAC b) =
     unsafeLocalState $
       ByteString.unsafeUseAsCStringLen a $ \(a', size) ->
         ByteString.unsafeUseAsCStringLen b $ \(b', _) ->
           constantTimeEquals a' b' size
 
-instance Show Hmac where
-  show (Hmac m) = show (Digest m)
+instance Show HMAC where
+  show (HMAC m) = show (Digest m)
 
 -- | Creates an HMAC according to the given 'Algorithm'.
-hmac :: Algorithm -> SecretKey -> LazyByteString -> Hmac
+hmac :: Algorithm -> SecretKey -> LazyByteString -> HMAC
 hmac (Algorithm md) (SecretKey key) bytes =
   unsafeLocalState $ do
-    ctxFP <- mallocHmacCtx
+    ctxFP <- mallocHMACCtx
     withForeignPtr ctxFP $ \ctx -> do
       ByteString.unsafeUseAsCStringLen key $ \(keyBytes, keySize) ->
         hmacInitEx ctx keyBytes (fromIntegral keySize) md noEngine
       mapM_ (updateBytes ctx) (ByteString.Lazy.toChunks bytes)
       m <-
-        allocaArray evpMaxMdSize $ \hmacOut ->
+        allocaArray evpMaxMDSize $ \hmacOut ->
           alloca $ \pOutSize -> do
             hmacFinal ctx hmacOut pOutSize
             outSize <- fromIntegral <$> peek pOutSize
@@ -71,7 +71,7 @@ hmac (Algorithm md) (SecretKey key) bytes =
             -- GHC reinterpret it as a 'Ptr CChar' so that it can be ingested
             -- into a 'ByteString'.
             ByteString.packCStringLen (unsafeCoerce hmacOut, outSize)
-      return (Hmac m)
+      return (HMAC m)
   where
     updateBytes ctx chunk =
       -- 'hmacUpdate' treats its @bytes@ argument as @const@, so the sharing

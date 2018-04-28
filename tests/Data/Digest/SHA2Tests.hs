@@ -14,7 +14,7 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module Data.Digest.Sha2Tests (tests) where
+module Data.Digest.SHA2Tests (tests) where
 
 import qualified Data.ByteString.Lazy as ByteString.Lazy
 import Test.Tasty (TestTree, testGroup)
@@ -22,7 +22,7 @@ import Test.Tasty.HUnit ((@?=), testCase)
 import Test.Tasty.SmallCheck (testProperty)
 
 import Data.Digest.HashTests
-  (tableTestCase, testAgainstCoreutils, testAgainstOpenssl)
+  (tableTestCase, testAgainstCoreutils, testAgainstOpenSSL)
 import Data.Digest (hash, sha224, sha256, sha384, sha512)
 
 tests :: TestTree
@@ -30,47 +30,47 @@ tests = testGroup "SHA-2"
   [ testNistExamples
   , testGoExamples
   , testCoreutilsConformance
-  , testOpensslConformance
+  , testOpenSSLConformance
   ]
 
 -- | SHA-2 example vectors from
 -- https://csrc.nist.gov/projects/cryptographic-standards-and-guidelines/example-values.
 testNistExamples = testGroup "NIST examples"
-  [ testNistSha224
-  , testNistSha256
-  , testNistSha384
-  , testNistSha512
+  [ testNistSHA224
+  , testNistSHA256
+  , testNistSHA384
+  , testNistSHA512
   ]
 
-testNistSha224 = testGroup "SHA-224"
+testNistSHA224 = testGroup "SHA-224"
   [ testCase "one-block" $ sha224sum "abc" @?= "23097d223405d8228642a477bda255b32aadbce4bda0b3f7e36c9da7"
   , testCase "two-block" $ sha224sum "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq" @?= "75388b16512776cc5dba5da1fd890150b0c6455cb4f58b1952522525"
   ]
 
-testNistSha256 = testGroup "SHA-256"
+testNistSHA256 = testGroup "SHA-256"
   [ testCase "one-block" $ sha256sum "abc" @?= "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
   , testCase "two-block" $ sha256sum "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq" @?= "248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1"
   ]
 
-testNistSha384 = testGroup "SHA-384"
+testNistSHA384 = testGroup "SHA-384"
   [ testCase "one-block" $ sha384sum "abc" @?= "cb00753f45a35e8bb5a03d699ac65007272c32ab0eded1631a8b605a43ff5bed8086072ba1e7cc2358baeca134c825a7"
   , testCase "two-block" $ sha384sum "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu" @?= "09330c33f71147e83d192fc782cd1b4753111b173b3b05d22fa08086e3b0f712fcc7c71a557e2db966c3e9fa91746039"
   ]
 
-testNistSha512 = testGroup "SHA-512"
+testNistSHA512 = testGroup "SHA-512"
   [ testCase "one-block" $ sha512sum "abc" @?= "ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a274fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f"
   , testCase "two-block" $ sha512sum "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu" @?= "8e959b75dae313da8cf4f72814fc143f8f7779c6eb9f7fa17299aeadb6889018501d289e4900f7e4331b99dec4b5433ac7d329eeb6dd26545e96e55b874be909"
   ]
 
 -- | Test vectors used to test the Go SHA-2 implementations.
 testGoExamples = testGroup "Go tests"
-  [ testGoSha224
-  , testGoSha256
-  , testGoSha384
-  , testGoSha512
+  [ testGoSHA224
+  , testGoSHA256
+  , testGoSHA384
+  , testGoSHA512
   ]
 
-testGoSha224 = testGroup "SHA-224" $
+testGoSHA224 = testGroup "SHA-224" $
   map (tableTestCase sha224sum)
     [ ("d14a028c2a3a2bc9476102bb288234c415a2b01f828ea62ac5b3e42f", "")
     , ("abd37534c7d9a2efb9465de931cd7055ffdb8879563ae98078d6d6d5", "a")
@@ -105,7 +105,7 @@ testGoSha224 = testGroup "SHA-224" $
     , ("86ed2eaa9c75ba98396e5c9fb2f679ecf0ea2ed1e0ee9ceecb4a9332", "How can you write a big system without C++?  -Paul Glick")
     ]
 
-testGoSha256 = testGroup "SHA-256" $
+testGoSHA256 = testGroup "SHA-256" $
   map (tableTestCase sha256sum)
     [ ("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "")
     , ("ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb", "a")
@@ -140,7 +140,7 @@ testGoSha256 = testGroup "SHA-256" $
     , ("4f9b189a13d030838269dce846b16a1ce9ce81fe63e65de2f636863336a98fe6", "How can you write a big system without C++?  -Paul Glick")
     ]
 
-testGoSha384 = testGroup "SHA-384" $
+testGoSHA384 = testGroup "SHA-384" $
   map (tableTestCase sha384sum)
     [ ("38b060a751ac96384cd9327eb1b1e36a21fdb71114be07434c0cc7bf63f6e1da274edebfe76f65fbd51ad2f14898b95b", "")
     , ("54a59b9f22b0b80880d8427e548b7c23abd873486e1f035dce9cd697e85175033caa88e6d57bc35efae0b5afd3145f31", "a")
@@ -175,7 +175,7 @@ testGoSha384 = testGroup "SHA-384" $
     , ("1764b700eb1ead52a2fc33cc28975c2180f1b8faa5038d94cffa8d78154aab16e91dd787e7b0303948ebed62561542c8", "How can you write a big system without C++?  -Paul Glick")
     ]
 
-testGoSha512 = testGroup "SHA-512" $
+testGoSHA512 = testGroup "SHA-512" $
   map (tableTestCase sha512sum)
     [ ("cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e", "")
     , ("1f40fc92da241694750979ee6cf582f2d5d7d28e18335de05abc54d0560e0f5302860c652bf08d560252aa5e74210546f369fbbbce8c12cfc7957b2652fe9a75", "a")
@@ -219,11 +219,11 @@ testCoreutilsConformance = testGroup "conformance with coreutils"
   ]
 
 -- | Tests our SHA-2 implementations against openssl(1)'s.
-testOpensslConformance = testGroup "conformance with OpenSSL"
-  [ testProperty "SHA-224" $ testAgainstOpenssl sha224sum "sha224"
-  , testProperty "SHA-256" $ testAgainstOpenssl sha256sum "sha256"
-  , testProperty "SHA-384" $ testAgainstOpenssl sha384sum "sha384"
-  , testProperty "SHA-512" $ testAgainstOpenssl sha512sum "sha512"
+testOpenSSLConformance = testGroup "conformance with OpenSSL"
+  [ testProperty "SHA-224" $ testAgainstOpenSSL sha224sum "sha224"
+  , testProperty "SHA-256" $ testAgainstOpenSSL sha256sum "sha256"
+  , testProperty "SHA-384" $ testAgainstOpenSSL sha384sum "sha384"
+  , testProperty "SHA-512" $ testAgainstOpenSSL sha512sum "sha512"
   ]
 
 -- Convenience functions.

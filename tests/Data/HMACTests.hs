@@ -14,7 +14,7 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module Data.HmacTests (tests) where
+module Data.HMACTests (tests) where
 
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Lazy as ByteString.Lazy
@@ -23,15 +23,15 @@ import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit ((@?=), testCase)
 
 import Data.Digest (md5, sha1, sha224, sha256, sha384, sha512)
-import Data.Hmac (SecretKey(SecretKey), hmac)
+import Data.HMAC (SecretKey(SecretKey), hmac)
 
 type LazyByteString = ByteString.Lazy.ByteString
 
 tests :: TestTree
-tests = testGroup "Data.Hmac"
-  [ testRfc2202
+tests = testGroup "Data.HMAC"
+  [ testRFC2202
   , testFips198
-  , testRfc4231
+  , testRFC4231
   ]
 
 tableTestCase ::
@@ -47,7 +47,7 @@ abbreviate input =
   x ++ (if null y then "" else "...") ++ "\""
 
 -- | Tests from RFC 2202.
-testRfc2202 = testGroup "RFC 2202" [testMd5, testSha1]
+testRFC2202 = testGroup "RFC 2202" [testMd5, testSha1]
   where
     testMd5 = testGroup "MD5" $
       map (tableTestCase hmacMd5)
@@ -132,7 +132,7 @@ rfc4231TestCase (key, input, sha224Output, sha256Output, sha384Output, sha512Out
     ]
 
 -- | Tests from RFC 4231.
-testRfc4231 = testGroup "RFC 4231" $
+testRFC4231 = testGroup "RFC 4231" $
   map rfc4231TestCase
     [ ( SecretKey (ByteString.replicate 20 0x0b)
       , "Hi There"
@@ -171,9 +171,9 @@ testRfc4231 = testGroup "RFC 4231" $
       , "6617178e941f020d351e2f254e8fd32c602420feb0b8fb9adccebb82461e99c5a678cc31e799176d3860e6110c46523e"
       , "e37b6a775dc87dbaa4dfa9f96e5e3ffddebd71f8867289865df5a32d20cdc944b6022cac3c4982b10d5eeb55c3e4de15134676fb6de0446065c97440fa8c6a58")
     ]
-    ++ [truncatedRfc4231Test]
+    ++ [truncatedRFC4231Test]
 
-truncatedRfc4231Test =
+truncatedRFC4231Test =
   let key = SecretKey (ByteString.replicate 20 0x0c)
       input = "Test With Truncation" :: LazyByteString
       t f = take 32 (f key input) :: String

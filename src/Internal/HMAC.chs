@@ -15,8 +15,8 @@
 {-# OPTIONS_GHC -Wno-missing-methods #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module Internal.Hmac
-  ( mallocHmacCtx
+module Internal.HMAC
+  ( mallocHMACCtx
   , hmacInitEx, hmacUpdate, hmacFinal
   ) where
 
@@ -31,30 +31,30 @@ import Result
 
 #include <openssl/hmac.h>
 
--- | Memory-safe allocator for 'HmacCtx'.
-mallocHmacCtx :: IO (ForeignPtr HmacCtx)
-mallocHmacCtx = do
+-- | Memory-safe allocator for 'HMACCtx'.
+mallocHMACCtx :: IO (ForeignPtr HMACCtx)
+mallocHMACCtx = do
   fp <- mallocForeignPtr
   withForeignPtr fp {#call HMAC_CTX_init as ^#}
   addForeignPtrFinalizer hmacCtxCleanup fp
   return fp
 
 foreign import ccall "&HMAC_CTX_cleanup"
-  hmacCtxCleanup :: FinalizerPtr HmacCtx
+  hmacCtxCleanup :: FinalizerPtr HMACCtx
 
-hmacInitEx :: Ptr HmacCtx -> Ptr a -> CULong -> Ptr EvpMd -> Ptr Engine -> IO ()
+hmacInitEx :: Ptr HMACCtx -> Ptr a -> CULong -> Ptr EVPMD -> Ptr Engine -> IO ()
 hmacInitEx ctx bytes size md engine =
   requireSuccess $
     {#call HMAC_Init_ex as ^#} ctx (asVoidPtr bytes) size md engine
 
-hmacUpdate :: Ptr HmacCtx -> Ptr CUChar -> CULong -> IO ()
+hmacUpdate :: Ptr HMACCtx -> Ptr CUChar -> CULong -> IO ()
 hmacUpdate ctx bytes size =
   alwaysSucceeds $ {#call HMAC_Update as ^#} ctx bytes size
 
-hmacFinal :: Ptr HmacCtx -> Ptr CUChar -> Ptr CUInt -> IO ()
+hmacFinal :: Ptr HMACCtx -> Ptr CUChar -> Ptr CUInt -> IO ()
 hmacFinal ctx out outSize =
   requireSuccess $ {#call HMAC_Final as ^#} ctx out outSize
 
-instance Storable HmacCtx where
+instance Storable HMACCtx where
   sizeOf _ = {#sizeof HMAC_CTX#}
   alignment _ = {#alignof HMAC_CTX#}

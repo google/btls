@@ -14,6 +14,6 @@
 
 #include <openssl/digest.h>
 
-void btlsFinalizeEvpMdCtx(EVP_MD_CTX* const ctx) {
+void btlsFinalizeEVPMDCtx(EVP_MD_CTX* const ctx) {
   (void)EVP_MD_CTX_cleanup(ctx);
 }
