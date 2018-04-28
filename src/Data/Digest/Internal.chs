@@ -16,7 +16,6 @@
 
 module Data.Digest.Internal where
 
-import Control.Exception (assert)
 import Data.Bits (Bits((.&.)), shiftR)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as ByteString
@@ -27,12 +26,13 @@ import Data.Word (Word8)
 import Foreign
        (FinalizerPtr, ForeignPtr, Ptr, Storable(alignment, peek, sizeOf),
         addForeignPtrFinalizer, alloca, allocaArray, mallocForeignPtr,
-        nullPtr, throwIf_, withForeignPtr)
+        nullPtr, withForeignPtr)
 import Foreign.C.Types
 import Foreign.Marshal.Unsafe (unsafeLocalState)
 import Unsafe.Coerce (unsafeCoerce)
 
 import Foreign.Ptr.Cast (asVoidPtr)
+import Result
 
 type LazyByteString = ByteString.Lazy.ByteString
 
@@ -70,11 +70,6 @@ evpMaxMdSize = {#const EVP_MAX_MD_SIZE#}
 -- Some of these functions return 'CInt' even though they can never fail. Wrap
 -- them to prevent warnings.
 
-alwaysSucceeds :: IO CInt -> IO ()
-alwaysSucceeds f = do
-  r <- f
-  assert (r == 1) (return ())
-
 evpDigestUpdate :: Ptr EvpMdCtx -> Ptr a -> CULong -> IO ()
 evpDigestUpdate ctx md bytes =
   alwaysSucceeds $ {#call EVP_DigestUpdate as ^#} ctx (asVoidPtr md) bytes
@@ -84,9 +79,6 @@ evpDigestFinalEx ctx mdOut outSize =
   alwaysSucceeds $ {#call EVP_DigestFinal_ex as ^#} ctx mdOut outSize
 
 -- Convert functions that can in fact fail to throw exceptions instead.
-
-requireSuccess :: IO CInt -> IO ()
-requireSuccess f = throwIf_ (/= 1) (const "BoringSSL failure") f
 
 evpDigestInitEx :: Ptr EvpMdCtx -> Ptr EvpMd -> Ptr Engine -> IO ()
 evpDigestInitEx ctx md engine =
