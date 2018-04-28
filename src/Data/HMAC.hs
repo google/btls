@@ -19,17 +19,17 @@ module Data.HMAC
   ) where
 
 import Data.ByteString (ByteString)
-import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Lazy as ByteString.Lazy
 import qualified Data.ByteString.Unsafe as ByteString
-import Foreign (Storable(peek), alloca, allocaArray, withForeignPtr)
+import Foreign (Ptr)
+import Foreign.C.Types
 import Foreign.Marshal.Unsafe (unsafeLocalState)
 import Unsafe.Coerce (unsafeCoerce)
 
-import Data.Digest.Internal (Algorithm(Algorithm), Digest(Digest))
+import Data.Digest.Internal
+  (Algorithm(Algorithm), Digest(Digest), initUpdateFinalize)
 import Foreign.Ptr.ConstantTimeEquals (constantTimeEquals)
 import Internal.Base
-import Internal.Digest
 import Internal.HMAC
 
 type LazyByteString = ByteString.Lazy.ByteString
@@ -55,28 +55,20 @@ instance Show HMAC where
 
 -- | Creates an HMAC according to the given 'Algorithm'.
 hmac :: Algorithm -> SecretKey -> LazyByteString -> HMAC
-hmac (Algorithm md) (SecretKey key) bytes =
-  unsafeLocalState $ do
-    ctxFP <- mallocHMACCtx
-    withForeignPtr ctxFP $ \ctx -> do
+hmac (Algorithm md) (SecretKey key) =
+  HMAC
+    . unsafeLocalState
+    . initUpdateFinalize mallocHMACCtx initialize update finalize
+  where
+    initialize ctx =
       ByteString.unsafeUseAsCStringLen key $ \(keyBytes, keySize) ->
         hmacInitEx ctx keyBytes (fromIntegral keySize) md noEngine
-      mapM_ (updateBytes ctx) (ByteString.Lazy.toChunks bytes)
-      m <-
-        allocaArray evpMaxMDSize $ \hmacOut ->
-          alloca $ \pOutSize -> do
-            hmacFinal ctx hmacOut pOutSize
-            outSize <- fromIntegral <$> peek pOutSize
-            -- As in 'Data.Digest.Internal', 'hmacOut' is a 'Ptr CUChar'. Have
-            -- GHC reinterpret it as a 'Ptr CChar' so that it can be ingested
-            -- into a 'ByteString'.
-            ByteString.packCStringLen (unsafeCoerce hmacOut, outSize)
-      return (HMAC m)
-  where
-    updateBytes ctx chunk =
-      -- 'hmacUpdate' treats its @bytes@ argument as @const@, so the sharing
-      -- inherent in 'ByteString.unsafeUseAsCStringLen' is fine.
-      ByteString.unsafeUseAsCStringLen chunk $ \(buf, len) ->
-        -- 'buf' is a 'Ptr CChar', but 'hmacUpdate' takes a 'Ptr CUChar', so we
-        -- do the 'unsafeCoerce' dance yet again.
-        hmacUpdate ctx (unsafeCoerce buf) (fromIntegral len)
+
+    -- initUpdateFinalize deals with buffers that are 'Ptr CChar'. However,
+    -- BoringSSL's HMAC functions deal with buffers that are 'Ptr CUChar'. As
+    -- in Data.Digest, we'll let Haskell reinterpret-cast the buffers.
+    update ctx buf len = hmacUpdate ctx (asCUCharBuf buf) len
+    finalize ctx hmacOut pOutSize = hmacFinal ctx (asCUCharBuf hmacOut) pOutSize
+
+    asCUCharBuf :: Ptr CChar -> Ptr CUChar
+    asCUCharBuf = unsafeCoerce

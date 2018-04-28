@@ -21,10 +21,9 @@ module Data.Digest
   , sha224, sha256, sha384, sha512
   ) where
 
-import qualified Data.ByteString as ByteString
-import qualified Data.ByteString.Unsafe as ByteString
 import qualified Data.ByteString.Lazy as ByteString.Lazy
-import Foreign (Storable(peek), alloca, allocaArray, withForeignPtr)
+import Foreign (Ptr)
+import Foreign.C.Types
 import Foreign.Marshal.Unsafe (unsafeLocalState)
 import Unsafe.Coerce (unsafeCoerce)
 
@@ -44,28 +43,19 @@ sha512 = Algorithm evpSHA512
 
 -- | Hashes according to the given 'Algorithm'.
 hash :: Algorithm -> LazyByteString -> Digest
-hash (Algorithm md) bytes =
-  unsafeLocalState $ do
-    ctxFP <- mallocEVPMDCtx
-    withForeignPtr ctxFP $ \ctx -> do
-      evpDigestInitEx ctx md noEngine
-      mapM_ (updateBytes ctx) (ByteString.Lazy.toChunks bytes)
-      d <-
-        allocaArray evpMaxMDSize $ \mdOut ->
-          alloca $ \pOutSize -> do
-            evpDigestFinalEx ctx mdOut pOutSize
-            outSize <- fromIntegral <$> peek pOutSize
-            -- 'mdOut' is a 'Ptr CUChar'. However, to make life more
-            -- interesting, 'CString' is a 'Ptr CChar', and 'CChar' is signed.
-            -- This is especially unfortunate given that all we really want to
-            -- do is convert to a 'ByteString', which is unsigned. To work
-            -- around it, we're going to cheat and let Haskell reinterpret-cast
-            -- 'mdOut' to 'Ptr CChar' before it does its 'ByteString' ingestion.
-            ByteString.packCStringLen (unsafeCoerce mdOut, outSize)
-      return (Digest d)
+hash (Algorithm md) =
+  Digest
+    . unsafeLocalState
+    . initUpdateFinalize mallocEVPMDCtx initialize evpDigestUpdate finalize
   where
-    updateBytes ctx chunk =
-      -- 'mdUpdate' treats its @buf@ argument as @const@, so the sharing
-      -- inherent in 'ByteString.unsafeUseAsCStringLen' is fine.
-      ByteString.unsafeUseAsCStringLen chunk $ \(buf, len) ->
-        evpDigestUpdate ctx buf (fromIntegral len)
+    initialize ctx = evpDigestInitEx ctx md noEngine
+
+    finalize ctx mdOut pOutSize =
+      -- 'mdOut' is a 'Ptr CChar'. However, to make life more interesting,
+      -- 'evpDigestFinalEx' requires a 'Ptr CUChar'. To work around this,
+      -- we're going to cheat and let Haskell reinterpret-cast 'mdOut' to 'Ptr
+      -- CUChar.
+      evpDigestFinalEx ctx (asCUCharBuf mdOut) pOutSize
+
+    asCUCharBuf :: Ptr CChar -> Ptr CUChar
+    asCUCharBuf = unsafeCoerce
