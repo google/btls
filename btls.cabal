@@ -58,6 +58,7 @@ library
                      , Foreign.Ptr.ConstantTimeEquals
                      , Internal.Base
                      , Internal.Digest
+                     , Internal.Hmac
                      , Result
   c-sources:           cbits/btls.c
   -- Use special names for the BoringSSL libraries to avoid accidentally pulling

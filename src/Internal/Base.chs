@@ -36,3 +36,8 @@ data EvpMdCtx
 -- | The BoringSSL @EVP_MD@ type, representing a hash algorithm.
 data EvpMd
 {#pointer *EVP_MD as 'Ptr EvpMd' -> EvpMd nocode#}
+
+-- | The BoringSSL @HMAC_CTX@ type, representing the state of a pending HMAC
+-- operation.
+data HmacCtx
+{#pointer *HMAC_CTX as 'Ptr HmacCtx' -> HmacCtx nocode#}
