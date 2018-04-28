@@ -12,8 +12,6 @@
 -- License for the specific language governing permissions and limitations under
 -- the License.
 
-{-# OPTIONS_GHC -Wno-missing-methods #-}
-
 module Data.Digest.Internal where
 
 import Data.Bits (Bits((.&.)), shiftR)
@@ -24,13 +22,14 @@ import qualified Data.ByteString.Unsafe as ByteString
 import Data.Char (intToDigit)
 import Data.Word (Word8)
 import Foreign
-       (FinalizerPtr, ForeignPtr, Ptr, Storable(alignment, peek, sizeOf),
-        addForeignPtrFinalizer, alloca, allocaArray, mallocForeignPtr,
-        nullPtr, withForeignPtr)
+       (FinalizerPtr, ForeignPtr, Ptr, Storable(peek), addForeignPtrFinalizer,
+        alloca, allocaArray, mallocForeignPtr, withForeignPtr)
 import Foreign.C.Types
 import Foreign.Marshal.Unsafe (unsafeLocalState)
 import Unsafe.Coerce (unsafeCoerce)
 
+{#import Internal.Base#}
+{#import Internal.Digest#} ()
 import Foreign.Ptr.Cast (asVoidPtr)
 import Result
 
@@ -39,26 +38,6 @@ type LazyByteString = ByteString.Lazy.ByteString
 #include <openssl/digest.h>
 
 -- First, we build basic bindings to the BoringSSL EVP interface.
-
--- | The BoringSSL @ENGINE@ type.
-data Engine
-{#pointer *ENGINE as 'Ptr Engine' -> Engine nocode#}
-
-noEngine :: Ptr Engine
-noEngine = nullPtr
-
--- | The BoringSSL @EVP_MD@ type, representing a hash algorithm.
-data EvpMd
-{#pointer *EVP_MD as 'Ptr EvpMd' -> EvpMd nocode#}
-
--- | The BoringSSL @EVP_MD_CTX@ type, representing the state of a pending
--- hashing operation.
-data EvpMdCtx
-{#pointer *EVP_MD_CTX as 'Ptr EvpMdCtx' -> EvpMdCtx nocode#}
-
-instance Storable EvpMdCtx where
-  sizeOf _ = {#sizeof EVP_MD_CTX#}
-  alignment _ = {#alignof EVP_MD_CTX#}
 
 -- Imported functions from BoringSSL. See
 -- https://commondatastorage.googleapis.com/chromium-boringssl-docs/digest.h.html

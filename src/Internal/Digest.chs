@@ -1,4 +1,4 @@
--- Copyright 2017 Google LLC
+-- Copyright 2018 Google LLC
 --
 -- Licensed under the Apache License, Version 2.0 (the "License"); you may not
 -- use this file except in compliance with the License. You may obtain a copy of
@@ -12,39 +12,17 @@
 -- License for the specific language governing permissions and limitations under
 -- the License.
 
-module Data.Digest
-  ( Algorithm
-  , Digest
-  , hash
-  , md5
-  , sha1
-  , sha224
-  , sha256
-  , sha384
-  , sha512
-  ) where
+{-# OPTIONS_GHC -Wno-missing-methods #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 
-import Foreign (Ptr)
+module Internal.Digest where
 
-{#import Data.Digest.Internal#}
+import Foreign (Storable(alignment, sizeOf))
+
 {#import Internal.Base#}
 
 #include <openssl/digest.h>
 
-md5 :: Algorithm
-md5 = Algorithm {#call pure EVP_md5 as ^#}
-
-sha1 :: Algorithm
-sha1 = Algorithm {#call pure EVP_sha1 as ^#}
-
-sha224 :: Algorithm
-sha224 = Algorithm {#call pure EVP_sha224 as ^#}
-
-sha256 :: Algorithm
-sha256 = Algorithm {#call pure EVP_sha256 as ^#}
-
-sha384 :: Algorithm
-sha384 = Algorithm {#call pure EVP_sha384 as ^#}
-
-sha512 :: Algorithm
-sha512 = Algorithm {#call pure EVP_sha512 as ^#}
+instance Storable EvpMdCtx where
+  sizeOf _ = {#sizeof EVP_MD_CTX#}
+  alignment _ = {#alignof EVP_MD_CTX#}
