@@ -12,15 +12,11 @@
 -- License for the specific language governing permissions and limitations under
 -- the License.
 
-module Main
-  ( main
-  ) where
+module Main (main) where
 
-import qualified Distribution.PackageDescription
-       as PackageDescription
+import qualified Distribution.PackageDescription as PackageDescription
 import qualified Distribution.Simple as Simple
-import qualified Distribution.Simple.LocalBuildInfo
-       as LocalBuildInfo
+import qualified Distribution.Simple.LocalBuildInfo as LocalBuildInfo
 import qualified Distribution.Simple.Setup as Setup
 import qualified Distribution.Simple.Utils as Utils
 import qualified Gtk2HsSetup
@@ -28,31 +24,25 @@ import System.Directory (getCurrentDirectory)
 import System.FilePath ((</>))
 
 main =
-  let h = Simple.simpleUserHooks
-  in Simple.defaultMainWithHooks
-       h
-       { Simple.preConf =
-           \args flags
-             -- Cabal expects to find BoringSSL's libraries already built at the
-             -- time of configuration, so we must build BoringSSL completely
-             -- here.
-            -> do
-             boringsslBuild flags
-             Simple.preConf h args flags
-       , Simple.confHook =
-           \info flags -> do
-             buildinfo <- Simple.confHook h info flags
-             boringsslUpdateExtraLibDirs buildinfo
-       , Simple.buildHook = Simple.buildHook Gtk2HsSetup.gtk2hsUserHooks
-       }
+  let h = Simple.simpleUserHooks in
+  Simple.defaultMainWithHooks
+    h { Simple.preConf = \args flags -> do
+          -- Cabal expects to find BoringSSL's libraries already built at the
+          -- time of configuration, so we must build BoringSSL completely here.
+          boringsslBuild flags
+          Simple.preConf h args flags
+      , Simple.confHook = \info flags -> do
+          buildinfo <- Simple.confHook h info flags
+          boringsslUpdateExtraLibDirs buildinfo
+      , Simple.buildHook = Simple.buildHook Gtk2HsSetup.gtk2hsUserHooks
+      }
 
 boringsslDir = "third_party" </> "boringssl"
 
 boringsslLibDir = boringsslDir </> "lib"
 
-boringsslBuild flags
+boringsslBuild flags = do
   -- Build BoringSSL.
- = do
   let buildDir = boringsslDir </> "build"
   mkdir buildDir
   cmd
@@ -65,8 +55,7 @@ boringsslBuild flags
   cmd ["ninja", "-C", buildDir]
   -- Rename BoringSSL's libraries so we don't accidentally grab OpenSSL.
   mkdir boringsslLibDir
-  Utils.installOrdinaryFile
-    v
+  Utils.installOrdinaryFile v
     (buildDir </> "crypto" </> "libcrypto.a")
     (boringsslLibDir </> "libbtls_crypto.a")
   where
@@ -86,12 +75,12 @@ boringsslUpdateExtraLibDirs buildinfo = do
         pkg
         { PackageDescription.library =
             Just $
-            lib
-            { PackageDescription.libBuildInfo =
-                libBuild
-                { PackageDescription.extraLibDirs =
-                    (root </> boringsslLibDir) : dirs
-                }
-            }
+              lib
+              { PackageDescription.libBuildInfo =
+                  libBuild
+                  { PackageDescription.extraLibDirs =
+                      (root </> boringsslLibDir) : dirs
+                  }
+              }
         }
     }

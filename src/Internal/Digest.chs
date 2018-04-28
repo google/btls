@@ -18,9 +18,7 @@
 module Internal.Digest
   ( evpMd5, evpSha1, evpSha224, evpSha256, evpSha384, evpSha512
   , mallocEvpMdCtx
-  , evpDigestInitEx
-  , evpDigestUpdate
-  , evpDigestFinalEx
+  , evpDigestInitEx, evpDigestUpdate, evpDigestFinalEx
   , evpMaxMdSize
   ) where
 

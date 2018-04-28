@@ -24,10 +24,8 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString as ByteString
 import System.IO (hClose, hGetContents, hSetBinaryMode)
 import System.Process
-       (CreateProcess(std_in, std_out), StdStream(CreatePipe),
-        createProcess_, proc)
-import qualified Test.SmallCheck.Series.ByteString
-       as ByteString.Series
+  (CreateProcess(std_in, std_out), StdStream(CreatePipe), createProcess_, proc)
+import qualified Test.SmallCheck.Series.ByteString as ByteString.Series
 import Test.Tasty (TestTree)
 import Test.Tasty.HUnit ((@?=), testCase)
 import Test.Tasty.SmallCheck (Property, monadic, over)

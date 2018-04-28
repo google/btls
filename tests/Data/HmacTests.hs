@@ -14,9 +14,7 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module Data.HmacTests
-  ( tests
-  ) where
+module Data.HmacTests (tests) where
 
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Lazy as ByteString.Lazy
@@ -30,7 +28,11 @@ import Data.Hmac (SecretKey(SecretKey), hmac)
 type LazyByteString = ByteString.Lazy.ByteString
 
 tests :: TestTree
-tests = testGroup "Data.Hmac" [testRfc2202, testFips198, testRfc4231]
+tests = testGroup "Data.Hmac"
+  [ testRfc2202
+  , testFips198
+  , testRfc4231
+  ]
 
 tableTestCase ::
      (SecretKey -> LazyByteString -> String)
@@ -41,19 +43,14 @@ tableTestCase f (key, input, output) =
 
 abbreviate :: LazyByteString -> String
 abbreviate input =
-  let (x, y) = splitAt 12 (show input)
-  in (x ++
-      if null y
-        then ""
-        else "..." ++ "\"")
+  let (x, y) = splitAt 12 (show input) in
+  x ++ (if null y then "" else "...") ++ "\""
 
 -- | Tests from RFC 2202.
 testRfc2202 = testGroup "RFC 2202" [testMd5, testSha1]
   where
-    testMd5 =
-      testGroup "MD5" $
-      map
-        (tableTestCase hmacMd5)
+    testMd5 = testGroup "MD5" $
+      map (tableTestCase hmacMd5)
         [ ( SecretKey (ByteString.replicate 16 0x0b)
           , "Hi There"
           , "9294727a3638bb1c13f48ef8158bfc9d")
@@ -76,10 +73,8 @@ testRfc2202 = testGroup "RFC 2202" [testMd5, testSha1]
           , "Test Using Larger Than Block-Size Key and Larger Than One Block-Size Data"
           , "6f630fad67cda0ee1fb1f562db3aa53e")
         ]
-    testSha1 =
-      testGroup "SHA-1" $
-      map
-        (tableTestCase hmacSha1)
+    testSha1 = testGroup "SHA-1" $
+      map (tableTestCase hmacSha1)
         [ ( SecretKey (ByteString.replicate 20 0x0b)
           , "Hi There"
           , "b617318655057264e28bc0b6fb378c8ef146be00")
@@ -104,10 +99,8 @@ testRfc2202 = testGroup "RFC 2202" [testMd5, testSha1]
         ]
 
 -- | Tests from FIPS 198.
-testFips198 =
-  testGroup "FIPS 198" $
-  map
-    (tableTestCase hmacSha1)
+testFips198 = testGroup "FIPS 198" $
+  map (tableTestCase hmacSha1)
     [ ( SecretKey (ByteString.pack [0 .. 0x3f])
       , "Sample #1"
       , "4f4ca3d5d68ba7cc0a1208c9c61e9c5da0403c0a")
@@ -117,8 +110,8 @@ testFips198 =
     , ( SecretKey (ByteString.pack [0x50 .. 0xb3])
       , "Sample #3"
       , "bcf41eab8bb2d802f3d05caf7cb092ecf8d1a3aa")
-    ] ++
-  [truncatedFips198Test]
+    ]
+    ++ [truncatedFips198Test]
 
 truncatedFips198Test =
   let input = "Sample #4" :: String
@@ -131,8 +124,7 @@ truncatedFips198Test =
 rfc4231TestCase ::
      (SecretKey, LazyByteString, String, String, String, String) -> TestTree
 rfc4231TestCase (key, input, sha224Output, sha256Output, sha384Output, sha512Output) =
-  testGroup
-    (abbreviate input)
+  testGroup (abbreviate input)
     [ testCase "SHA-224" (hmacSha224 key input @?= sha224Output)
     , testCase "SHA-256" (hmacSha256 key input @?= sha256Output)
     , testCase "SHA-384" (hmacSha384 key input @?= sha384Output)
@@ -140,10 +132,8 @@ rfc4231TestCase (key, input, sha224Output, sha256Output, sha384Output, sha512Out
     ]
 
 -- | Tests from RFC 4231.
-testRfc4231 =
-  testGroup "RFC 4231" $
-  map
-    rfc4231TestCase
+testRfc4231 = testGroup "RFC 4231" $
+  map rfc4231TestCase
     [ ( SecretKey (ByteString.replicate 20 0x0b)
       , "Hi There"
       , "896fb1128abbdf196832107cd49df33f47b4b1169912ba4f53684b22"
@@ -180,29 +170,23 @@ testRfc4231 =
       , "9b09ffa71b942fcb27635fbcd5b0e944bfdc63644f0713938a7f51535c3a35e2"
       , "6617178e941f020d351e2f254e8fd32c602420feb0b8fb9adccebb82461e99c5a678cc31e799176d3860e6110c46523e"
       , "e37b6a775dc87dbaa4dfa9f96e5e3ffddebd71f8867289865df5a32d20cdc944b6022cac3c4982b10d5eeb55c3e4de15134676fb6de0446065c97440fa8c6a58")
-    ] ++
-  [truncatedRfc4231Test]
+    ]
+    ++ [truncatedRfc4231Test]
 
 truncatedRfc4231Test =
   let key = SecretKey (ByteString.replicate 20 0x0c)
       input = "Test With Truncation" :: LazyByteString
       t f = take 32 (f key input) :: String
-  in testGroup
-       (abbreviate input)
+  in testGroup (abbreviate input)
        [ testCase "SHA-224" (t hmacSha224 @?= "0e2aea68a90c8d37c988bcdb9fca6fa8")
        , testCase "SHA-256" (t hmacSha256 @?= "a3b6167473100ee06e0c796c2955552b")
        , testCase "SHA-384" (t hmacSha384 @?= "3abf34c3503b2a23a46efc619baef897")
        , testCase "SHA-512" (t hmacSha512 @?= "415fad6271580a531d4179bc891d87a6")
        ]
 
-hmacMd5 key bytes = show $ hmac md5 key bytes
-
-hmacSha1 key bytes = show $ hmac sha1 key bytes
-
+hmacMd5    key bytes = show $ hmac md5 key bytes
+hmacSha1   key bytes = show $ hmac sha1 key bytes
 hmacSha224 key bytes = show $ hmac sha224 key bytes
-
 hmacSha256 key bytes = show $ hmac sha256 key bytes
-
 hmacSha384 key bytes = show $ hmac sha384 key bytes
-
 hmacSha512 key bytes = show $ hmac sha512 key bytes

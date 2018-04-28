@@ -27,8 +27,7 @@ import Internal.Base (EvpMd)
 newtype Algorithm = Algorithm (Ptr EvpMd)
 
 -- | The result of a hash operation.
-newtype Digest =
-  Digest ByteString
+newtype Digest = Digest ByteString
   deriving (Eq, Ord)
 
 instance Show Digest where

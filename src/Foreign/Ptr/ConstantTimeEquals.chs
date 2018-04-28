@@ -26,5 +26,5 @@ import Foreign.Ptr.Cast (asVoidPtr)
 -- contents.
 constantTimeEquals :: Ptr a -> Ptr a -> Int -> IO Bool
 constantTimeEquals a b size =
-  let size' = fromIntegral size :: CULong
-  in (== 0) <$> {#call CRYPTO_memcmp as ^#} (asVoidPtr a) (asVoidPtr b) size'
+  let size' = fromIntegral size :: CULong in
+  (== 0) <$> {#call CRYPTO_memcmp as ^#} (asVoidPtr a) (asVoidPtr b) size'

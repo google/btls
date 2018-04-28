@@ -46,9 +46,9 @@ newtype Hmac = Hmac ByteString
 instance Eq Hmac where
   (Hmac a) == (Hmac b) =
     unsafeLocalState $
-    ByteString.unsafeUseAsCStringLen a $ \(a', size) ->
-      ByteString.unsafeUseAsCStringLen b $ \(b', _) ->
-        constantTimeEquals a' b' size
+      ByteString.unsafeUseAsCStringLen a $ \(a', size) ->
+        ByteString.unsafeUseAsCStringLen b $ \(b', _) ->
+          constantTimeEquals a' b' size
 
 instance Show Hmac where
   show (Hmac m) = show (Digest m)

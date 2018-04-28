@@ -18,10 +18,7 @@ module Data.Digest
   , hash
   , md5
   , sha1
-  , sha224
-  , sha256
-  , sha384
-  , sha512
+  , sha224, sha256, sha384, sha512
   ) where
 
 import qualified Data.ByteString as ByteString
@@ -37,22 +34,12 @@ import Internal.Digest
 
 type LazyByteString = ByteString.Lazy.ByteString
 
-md5 :: Algorithm
-md5 = Algorithm evpMd5
-
-sha1 :: Algorithm
-sha1 = Algorithm evpSha1
-
-sha224 :: Algorithm
+md5, sha1, sha224, sha256, sha384, sha512 :: Algorithm
+md5    = Algorithm evpMd5
+sha1   = Algorithm evpSha1
 sha224 = Algorithm evpSha224
-
-sha256 :: Algorithm
 sha256 = Algorithm evpSha256
-
-sha384 :: Algorithm
 sha384 = Algorithm evpSha384
-
-sha512 :: Algorithm
 sha512 = Algorithm evpSha512
 
 -- | Hashes according to the given 'Algorithm'.

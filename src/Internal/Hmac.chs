@@ -17,9 +17,7 @@
 
 module Internal.Hmac
   ( mallocHmacCtx
-  , hmacInitEx
-  , hmacUpdate
-  , hmacFinal
+  , hmacInitEx, hmacUpdate, hmacFinal
   ) where
 
 import Foreign
