@@ -23,6 +23,7 @@ import qualified Distribution.Simple.LocalBuildInfo
        as LocalBuildInfo
 import qualified Distribution.Simple.Setup as Setup
 import qualified Distribution.Simple.Utils as Utils
+import qualified Gtk2HsSetup
 import System.Directory (getCurrentDirectory)
 import System.FilePath ((</>))
 
@@ -42,6 +43,7 @@ main =
            \info flags -> do
              buildinfo <- Simple.confHook h info flags
              boringsslUpdateExtraLibDirs buildinfo
+       , Simple.buildHook = Simple.buildHook Gtk2HsSetup.gtk2hsUserHooks
        }
 
 boringsslDir = "third_party" </> "boringssl"

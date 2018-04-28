@@ -32,10 +32,11 @@ import Foreign.C.Types
 import Foreign.Marshal.Unsafe (unsafeLocalState)
 import Unsafe.Coerce (unsafeCoerce)
 
-import Data.Digest.Internal
+{#import Data.Digest.Internal#}
        (Algorithm(Algorithm), Digest(Digest), Engine, EvpMd,
         alwaysSucceeds, evpMaxMdSize, noEngine, requireSuccess)
-import Foreign.Ptr.ConstantTimeEquals (constantTimeEquals)
+import Foreign.Ptr.Cast (asVoidPtr)
+{#import Foreign.Ptr.ConstantTimeEquals#} (constantTimeEquals)
 
 type LazyByteString = ByteString.Lazy.ByteString
 
@@ -46,42 +47,33 @@ type LazyByteString = ByteString.Lazy.ByteString
 -- | The BoringSSL @HMAC_CTX@ type, representing the state of a pending HMAC
 -- operation.
 data HmacCtx
+{#pointer *HMAC_CTX as 'Ptr HmacCtx' -> HmacCtx nocode#}
 
 instance Storable HmacCtx where
-  sizeOf _ = #size HMAC_CTX
-  alignment _ = #alignment HMAC_CTX
+  sizeOf _ = {#sizeof HMAC_CTX#}
+  alignment _ = {#alignof HMAC_CTX#}
 
 -- Imported functions from BoringSSL. See
 -- https://commondatastorage.googleapis.com/chromium-boringssl-docs/hmac.h.html
 -- for documentation.
-
-foreign import ccall "openssl/hmac.h HMAC_CTX_init"
-  hmacCtxInit :: Ptr HmacCtx -> IO ()
-
-foreign import ccall "openssl/hmac.h HMAC_Init_ex"
-  hmacInitEx' ::
-       Ptr HmacCtx -> Ptr a -> CSize -> Ptr EvpMd -> Ptr Engine -> IO CInt
-
-foreign import ccall "openssl/hmac.h HMAC_Update"
-  hmacUpdate' :: Ptr HmacCtx -> Ptr CUChar -> CSize -> IO CInt
-
-foreign import ccall "openssl/hmac.h HMAC_Final"
-  hmacFinal' :: Ptr HmacCtx -> Ptr CUChar -> Ptr CUInt -> IO CInt
-
+--
 -- Some of these functions return 'CInt' even though they can never fail. Wrap
 -- them to prevent warnings.
 
-hmacUpdate :: Ptr HmacCtx -> Ptr CUChar -> CSize -> IO ()
-hmacUpdate ctx bytes size = alwaysSucceeds $ hmacUpdate' ctx bytes size
+hmacUpdate :: Ptr HmacCtx -> Ptr CUChar -> CULong -> IO ()
+hmacUpdate ctx bytes size =
+  alwaysSucceeds $ {#call HMAC_Update as ^#} ctx bytes size
 
 -- Convert functions that can in fact fail to throw exceptions instead.
 
-hmacInitEx :: Ptr HmacCtx -> Ptr a -> CSize -> Ptr EvpMd -> Ptr Engine -> IO ()
+hmacInitEx :: Ptr HmacCtx -> Ptr a -> CULong -> Ptr EvpMd -> Ptr Engine -> IO ()
 hmacInitEx ctx bytes size md engine =
-  requireSuccess $ hmacInitEx' ctx bytes size md engine
+  requireSuccess $
+    {#call HMAC_Init_ex as ^#} ctx (asVoidPtr bytes) size md engine
 
 hmacFinal :: Ptr HmacCtx -> Ptr CUChar -> Ptr CUInt -> IO ()
-hmacFinal ctx out outSize = requireSuccess $ hmacFinal' ctx out outSize
+hmacFinal ctx out outSize =
+  requireSuccess $ {#call HMAC_Final as ^#} ctx out outSize
 
 -- Now we can build a memory-safe allocator.
 
@@ -89,7 +81,7 @@ hmacFinal ctx out outSize = requireSuccess $ hmacFinal' ctx out outSize
 mallocHmacCtx :: IO (ForeignPtr HmacCtx)
 mallocHmacCtx = do
   fp <- mallocForeignPtr
-  withForeignPtr fp hmacCtxInit
+  withForeignPtr fp {#call HMAC_CTX_init as ^#}
   addForeignPtrFinalizer hmacCtxCleanup fp
   return fp
 
@@ -127,7 +119,7 @@ hmac (Algorithm md) (SecretKey key) bytes =
         hmacInitEx ctx keyBytes (fromIntegral keySize) md noEngine
       mapM_ (updateBytes ctx) (ByteString.Lazy.toChunks bytes)
       m <-
-        allocaArray (fromIntegral evpMaxMdSize) $ \hmacOut ->
+        allocaArray evpMaxMdSize $ \hmacOut ->
           alloca $ \pOutSize -> do
             hmacFinal ctx hmacOut pOutSize
             outSize <- fromIntegral <$> peek pOutSize

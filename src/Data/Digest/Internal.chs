@@ -12,7 +12,6 @@
 -- License for the specific language governing permissions and limitations under
 -- the License.
 
-{-# LANGUAGE CApiFFI #-}
 {-# OPTIONS_GHC -Wno-missing-methods #-}
 
 module Data.Digest.Internal where
@@ -33,6 +32,8 @@ import Foreign.C.Types
 import Foreign.Marshal.Unsafe (unsafeLocalState)
 import Unsafe.Coerce (unsafeCoerce)
 
+import Foreign.Ptr.Cast (asVoidPtr)
+
 type LazyByteString = ByteString.Lazy.ByteString
 
 #include <openssl/digest.h>
@@ -41,39 +42,30 @@ type LazyByteString = ByteString.Lazy.ByteString
 
 -- | The BoringSSL @ENGINE@ type.
 data Engine
+{#pointer *ENGINE as 'Ptr Engine' -> Engine nocode#}
 
 noEngine :: Ptr Engine
 noEngine = nullPtr
 
 -- | The BoringSSL @EVP_MD@ type, representing a hash algorithm.
 data EvpMd
+{#pointer *EVP_MD as 'Ptr EvpMd' -> EvpMd nocode#}
 
 -- | The BoringSSL @EVP_MD_CTX@ type, representing the state of a pending
 -- hashing operation.
 data EvpMdCtx
+{#pointer *EVP_MD_CTX as 'Ptr EvpMdCtx' -> EvpMdCtx nocode#}
 
 instance Storable EvpMdCtx where
-  sizeOf _ = #size EVP_MD_CTX
-  alignment _ = #alignment EVP_MD_CTX
+  sizeOf _ = {#sizeof EVP_MD_CTX#}
+  alignment _ = {#alignof EVP_MD_CTX#}
 
 -- Imported functions from BoringSSL. See
 -- https://commondatastorage.googleapis.com/chromium-boringssl-docs/digest.h.html
 -- for documentation.
 
-foreign import ccall "openssl/digest.h EVP_MD_CTX_init"
-  evpMdCtxInit :: Ptr EvpMdCtx -> IO ()
-
-foreign import ccall "openssl/digest.h EVP_DigestInit_ex"
-  evpDigestInitEx' :: Ptr EvpMdCtx -> Ptr EvpMd -> Ptr Engine -> IO CInt
-
-foreign import capi "openssl/digest.h value EVP_MAX_MD_SIZE"
-  evpMaxMdSize :: CSize
-
-foreign import ccall "openssl/digest.h EVP_DigestUpdate"
-  evpDigestUpdate' :: Ptr EvpMdCtx -> Ptr a -> CSize -> IO CInt
-
-foreign import ccall "openssl/digest.h EVP_DigestFinal_ex"
-  evpDigestFinalEx' :: Ptr EvpMdCtx -> Ptr CUChar -> Ptr CUInt -> IO CInt
+evpMaxMdSize :: Int
+evpMaxMdSize = {#const EVP_MAX_MD_SIZE#}
 
 -- Some of these functions return 'CInt' even though they can never fail. Wrap
 -- them to prevent warnings.
@@ -83,12 +75,13 @@ alwaysSucceeds f = do
   r <- f
   assert (r == 1) (return ())
 
-evpDigestUpdate :: Ptr EvpMdCtx -> Ptr a -> CSize -> IO ()
-evpDigestUpdate ctx md bytes = alwaysSucceeds $ evpDigestUpdate' ctx md bytes
+evpDigestUpdate :: Ptr EvpMdCtx -> Ptr a -> CULong -> IO ()
+evpDigestUpdate ctx md bytes =
+  alwaysSucceeds $ {#call EVP_DigestUpdate as ^#} ctx (asVoidPtr md) bytes
 
 evpDigestFinalEx :: Ptr EvpMdCtx -> Ptr CUChar -> Ptr CUInt -> IO ()
 evpDigestFinalEx ctx mdOut outSize =
-  alwaysSucceeds $ evpDigestFinalEx' ctx mdOut outSize
+  alwaysSucceeds $ {#call EVP_DigestFinal_ex as ^#} ctx mdOut outSize
 
 -- Convert functions that can in fact fail to throw exceptions instead.
 
@@ -96,7 +89,8 @@ requireSuccess :: IO CInt -> IO ()
 requireSuccess f = throwIf_ (/= 1) (const "BoringSSL failure") f
 
 evpDigestInitEx :: Ptr EvpMdCtx -> Ptr EvpMd -> Ptr Engine -> IO ()
-evpDigestInitEx ctx md engine = requireSuccess $ evpDigestInitEx' ctx md engine
+evpDigestInitEx ctx md engine =
+  requireSuccess $ {#call EVP_DigestInit_ex as ^#} ctx md engine
 
 -- Now we can build a memory-safe allocator.
 
@@ -104,13 +98,9 @@ evpDigestInitEx ctx md engine = requireSuccess $ evpDigestInitEx' ctx md engine
 mallocEvpMdCtx :: IO (ForeignPtr EvpMdCtx)
 mallocEvpMdCtx = do
   fp <- mallocForeignPtr
-  withForeignPtr fp evpMdCtxInit
+  withForeignPtr fp {#call EVP_MD_CTX_init as ^#}
   addForeignPtrFinalizer btlsFinalizeEvpMdCtxPtr fp
   return fp
-
-#def void btlsFinalizeEvpMdCtx(EVP_MD_CTX* const ctx) {
-  (void)EVP_MD_CTX_cleanup(ctx);
-}
 
 foreign import ccall "&btlsFinalizeEvpMdCtx"
   btlsFinalizeEvpMdCtxPtr :: FinalizerPtr EvpMdCtx
@@ -141,7 +131,7 @@ hash (Algorithm md) bytes =
       evpDigestInitEx ctx md noEngine
       mapM_ (updateBytes ctx) (ByteString.Lazy.toChunks bytes)
       d <-
-        allocaArray (fromIntegral evpMaxMdSize) $ \mdOut ->
+        allocaArray evpMaxMdSize $ \mdOut ->
           alloca $ \pOutSize -> do
             evpDigestFinalEx ctx mdOut pOutSize
             outSize <- fromIntegral <$> peek pOutSize
