@@ -32,11 +32,11 @@ import Foreign.C.Types
 import Foreign.Marshal.Unsafe (unsafeLocalState)
 import Unsafe.Coerce (unsafeCoerce)
 
-{#import Data.Digest.Internal#}
-       (Algorithm(Algorithm), Digest(Digest), evpMaxMdSize)
+import Data.Digest.Internal (Algorithm(Algorithm), Digest(Digest))
 import Foreign.Ptr.Cast (asVoidPtr)
 {#import Foreign.Ptr.ConstantTimeEquals#} (constantTimeEquals)
 {#import Internal.Base#}
+{#import Internal.Digest#}
 import Result
 
 type LazyByteString = ByteString.Lazy.ByteString

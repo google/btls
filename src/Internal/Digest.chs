@@ -15,13 +15,59 @@
 {-# OPTIONS_GHC -Wno-missing-methods #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module Internal.Digest where
+module Internal.Digest
+  ( evpMd5, evpSha1, evpSha224, evpSha256, evpSha384, evpSha512
+  , mallocEvpMdCtx
+  , evpDigestInitEx
+  , evpDigestUpdate
+  , evpDigestFinalEx
+  , evpMaxMdSize
+  ) where
 
-import Foreign (Storable(alignment, sizeOf))
+import Foreign
+  (FinalizerPtr, ForeignPtr, Ptr, Storable(alignment, sizeOf),
+   addForeignPtrFinalizer, mallocForeignPtr, withForeignPtr)
+import Foreign.C.Types
+import Foreign.Ptr.Cast (asVoidPtr)
 
 {#import Internal.Base#}
+import Result
 
 #include <openssl/digest.h>
+
+evpMd5, evpSha1, evpSha224, evpSha256, evpSha384, evpSha512 :: Ptr EvpMd
+evpMd5    = {#call pure EVP_md5 as ^#}
+evpSha1   = {#call pure EVP_sha1 as ^#}
+evpSha224 = {#call pure EVP_sha224 as ^#}
+evpSha256 = {#call pure EVP_sha256 as ^#}
+evpSha384 = {#call pure EVP_sha384 as ^#}
+evpSha512 = {#call pure EVP_sha512 as ^#}
+
+-- | Memory-safe allocator for 'EvpMdCtx'.
+mallocEvpMdCtx :: IO (ForeignPtr EvpMdCtx)
+mallocEvpMdCtx = do
+  fp <- mallocForeignPtr
+  withForeignPtr fp {#call EVP_MD_CTX_init as ^#}
+  addForeignPtrFinalizer btlsFinalizeEvpMdCtxPtr fp
+  return fp
+
+foreign import ccall "&btlsFinalizeEvpMdCtx"
+  btlsFinalizeEvpMdCtxPtr :: FinalizerPtr EvpMdCtx
+
+evpDigestInitEx :: Ptr EvpMdCtx -> Ptr EvpMd -> Ptr Engine -> IO ()
+evpDigestInitEx ctx md engine =
+  requireSuccess $ {#call EVP_DigestInit_ex as ^#} ctx md engine
+
+evpDigestUpdate :: Ptr EvpMdCtx -> Ptr a -> CULong -> IO ()
+evpDigestUpdate ctx md bytes =
+  alwaysSucceeds $ {#call EVP_DigestUpdate as ^#} ctx (asVoidPtr md) bytes
+
+evpDigestFinalEx :: Ptr EvpMdCtx -> Ptr CUChar -> Ptr CUInt -> IO ()
+evpDigestFinalEx ctx mdOut outSize =
+  alwaysSucceeds $ {#call EVP_DigestFinal_ex as ^#} ctx mdOut outSize
+
+evpMaxMdSize :: Int
+evpMaxMdSize = {#const EVP_MAX_MD_SIZE#}
 
 instance Storable EvpMdCtx where
   sizeOf _ = {#sizeof EVP_MD_CTX#}
