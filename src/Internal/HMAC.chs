@@ -26,6 +26,7 @@ import Foreign
 import Foreign.C.Types
 
 import Foreign.Ptr.Cast (asVoidPtr)
+import Foreign.Ptr.CreateWithFinalizer (createWithFinalizer)
 {#import Internal.Base#}
 import Result
 
@@ -33,11 +34,7 @@ import Result
 
 -- | Memory-safe allocator for 'HMACCtx'.
 mallocHMACCtx :: IO (ForeignPtr HMACCtx)
-mallocHMACCtx = do
-  fp <- mallocForeignPtr
-  withForeignPtr fp {#call HMAC_CTX_init as ^#}
-  addForeignPtrFinalizer hmacCtxCleanup fp
-  return fp
+mallocHMACCtx = createWithFinalizer {#call HMAC_CTX_init as ^#} hmacCtxCleanup
 
 foreign import ccall "&HMAC_CTX_cleanup"
   hmacCtxCleanup :: FinalizerPtr HMACCtx

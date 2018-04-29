@@ -52,6 +52,7 @@ library
   other-modules:       Data.Digest.Internal
                      , Foreign.Ptr.Cast
                      , Foreign.Ptr.ConstantTimeEquals
+                     , Foreign.Ptr.CreateWithFinalizer
                      , Internal.Base
                      , Internal.Digest
                      , Internal.HMAC

@@ -28,6 +28,7 @@ import Foreign
 import Foreign.C.Types
 import Foreign.Ptr.Cast (asVoidPtr)
 
+import Foreign.Ptr.CreateWithFinalizer (createWithFinalizer)
 {#import Internal.Base#}
 import Result
 
@@ -43,11 +44,8 @@ evpSHA512 = {#call pure EVP_sha512 as ^#}
 
 -- | Memory-safe allocator for 'EVPMDCtx'.
 mallocEVPMDCtx :: IO (ForeignPtr EVPMDCtx)
-mallocEVPMDCtx = do
-  fp <- mallocForeignPtr
-  withForeignPtr fp {#call EVP_MD_CTX_init as ^#}
-  addForeignPtrFinalizer btlsFinalizeEVPMDCtxPtr fp
-  return fp
+mallocEVPMDCtx =
+  createWithFinalizer {#call EVP_MD_CTX_init as ^#} btlsFinalizeEVPMDCtxPtr
 
 foreign import ccall "&btlsFinalizeEVPMDCtx"
   btlsFinalizeEVPMDCtxPtr :: FinalizerPtr EVPMDCtx
