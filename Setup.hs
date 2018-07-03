@@ -49,6 +49,7 @@ boringsslBuild flags = do
     [ "cmake"
     , "-GNinja"
     , "-DCMAKE_BUILD_TYPE=Release"
+    , "-DCMAKE_POSITION_INDEPENDENT_CODE=TRUE"
     , "-B" ++ buildDir
     , "-H" ++ boringsslDir </> "src"
     ]
