@@ -45,6 +45,7 @@ boringsslBuild flags = do
   -- Build BoringSSL.
   let buildDir = boringsslDir </> "build"
   mkdir buildDir
+  let cryptoTarget = "crypto" </> "libcrypto.a"
   cmd
     [ "cmake"
     , "-GNinja"
@@ -53,11 +54,11 @@ boringsslBuild flags = do
     , "-B" ++ buildDir
     , "-H" ++ boringsslDir </> "src"
     ]
-  cmd ["ninja", "-C", buildDir]
+  cmd ["ninja", "-C", buildDir, cryptoTarget]
   -- Rename BoringSSL's libraries so we don't accidentally grab OpenSSL.
   mkdir boringsslLibDir
   Utils.installOrdinaryFile v
-    (buildDir </> "crypto" </> "libcrypto.a")
+    (buildDir </> cryptoTarget)
     (boringsslLibDir </> "libbtls_crypto.a")
   where
     v = Setup.fromFlag (Setup.configVerbosity flags)
