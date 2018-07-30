@@ -13,7 +13,6 @@
 -- the License.
 
 {-# OPTIONS_GHC -Wno-missing-methods #-}
-{-# OPTIONS_GHC -Wno-orphans #-}
 
 module Internal.Digest
   ( evpMD5, evpSHA1, evpSHA224, evpSHA256, evpSHA384, evpSHA512
@@ -22,9 +21,7 @@ module Internal.Digest
   , evpMaxMDSize
   ) where
 
-import Foreign
-  (FinalizerPtr, ForeignPtr, Ptr, Storable(alignment, sizeOf),
-   addForeignPtrFinalizer, mallocForeignPtr, withForeignPtr)
+import Foreign (FinalizerPtr, ForeignPtr, Ptr, Storable(alignment, sizeOf))
 import Foreign.C.Types
 import Foreign.Ptr.Cast (asVoidPtr)
 

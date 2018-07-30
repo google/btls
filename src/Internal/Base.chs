@@ -12,7 +12,6 @@
 -- License for the specific language governing permissions and limitations under
 -- the License.
 
-{-# OPTIONS_GHC -Wno-missing-methods #-}
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 
 module Internal.Base where

@@ -13,16 +13,13 @@
 -- the License.
 
 {-# OPTIONS_GHC -Wno-missing-methods #-}
-{-# OPTIONS_GHC -Wno-orphans #-}
 
 module Internal.HMAC
   ( mallocHMACCtx
   , hmacInitEx, hmacUpdate, hmacFinal
   ) where
 
-import Foreign
-  (FinalizerPtr, ForeignPtr, Ptr, Storable(alignment, sizeOf),
-   addForeignPtrFinalizer, mallocForeignPtr, withForeignPtr)
+import Foreign (FinalizerPtr, ForeignPtr, Ptr, Storable(alignment, sizeOf))
 import Foreign.C.Types
 
 import Foreign.Ptr.Cast (asVoidPtr)

@@ -41,11 +41,31 @@ library
   default-language:    Haskell2010
   build-tools:         c2hs
   include-dirs:        third_party/boringssl/src/include
-  ghc-options:         -Weverything
-                       -Wno-all-missed-specialisations
-                       -Wno-implicit-prelude
-                       -Wno-missing-import-lists
-                       -Wno-safe -Wno-unsafe
+  ghc-options:         -Werror
+                       -w
+                       -Wderiving-typeable
+                       -Wduplicate-exports
+                       -Widentities
+                       -Wincomplete-patterns
+                       -Wincomplete-record-updates
+                       -Wincomplete-uni-patterns
+                       -Wmissing-fields
+                       -Wmissing-methods
+                       -Wmissing-monadfail-instances
+                       -Wnoncanonical-monad-instances
+                       -Wnoncanonical-monadfail-instances
+                       -Wnoncanonical-monoid-instances
+                       -Woverlapping-patterns
+                       -Wredundant-constraints
+                       -Wsemigroup
+                       -Wtabs
+                       -Wunused-binds
+                       -Wunused-do-bind
+                       -Wunused-foralls
+                       -Wunused-imports
+                       -Wunused-matches
+                       -Wunused-type-variables
+                       -Wwrong-do-bind
                        -optl-Wl,-z,relro -optl-Wl,-z,now -optl-Wl,-s
   exposed-modules:     Data.Digest
                      , Data.HMAC
@@ -70,12 +90,31 @@ test-suite tests
   hs-source-dirs:      tests
   default-language:    Haskell2010
   other-extensions:    OverloadedStrings
-  ghc-options:         -Weverything
-                       -Wno-all-missed-specialisations
-                       -Wno-implicit-prelude
-                       -Wno-missing-import-lists
-                       -Wno-missing-signatures
-                       -Wno-safe -Wno-unsafe
+  ghc-options:         -Werror
+                       -w
+                       -Wderiving-typeable
+                       -Wduplicate-exports
+                       -Widentities
+                       -Wincomplete-patterns
+                       -Wincomplete-record-updates
+                       -Wincomplete-uni-patterns
+                       -Wmissing-fields
+                       -Wmissing-methods
+                       -Wmissing-monadfail-instances
+                       -Wnoncanonical-monad-instances
+                       -Wnoncanonical-monadfail-instances
+                       -Wnoncanonical-monoid-instances
+                       -Woverlapping-patterns
+                       -Wredundant-constraints
+                       -Wsemigroup
+                       -Wtabs
+                       -Wunused-binds
+                       -Wunused-do-bind
+                       -Wunused-foralls
+                       -Wunused-imports
+                       -Wunused-matches
+                       -Wunused-type-variables
+                       -Wwrong-do-bind
                        -optl-Wl,-z,relro -optl-Wl,-z,now -optl-Wl,-s
   main-is:             Tests.hs
   other-modules:       Data.DigestTests
