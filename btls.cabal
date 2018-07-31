@@ -67,7 +67,8 @@ library
                        -Wunused-type-variables
                        -Wwrong-do-bind
                        -optl-Wl,-z,relro -optl-Wl,-z,now -optl-Wl,-s
-  exposed-modules:     Data.Digest
+  exposed-modules:     Codec.Crypto.HKDF
+                     , Data.Digest
                      , Data.HMAC
   other-modules:       Data.Digest.Internal
                      , Foreign.Ptr.Cast
@@ -75,8 +76,10 @@ library
                      , Foreign.Ptr.CreateWithFinalizer
                      , Internal.Base
                      , Internal.Digest
+                     , Internal.HKDF
                      , Internal.HMAC
                      , Result
+                     , Types
   c-sources:           cbits/btls.c
   -- Use special names for the BoringSSL libraries to avoid accidentally pulling
   -- in OpenSSL.
@@ -117,13 +120,15 @@ test-suite tests
                        -Wwrong-do-bind
                        -optl-Wl,-z,relro -optl-Wl,-z,now -optl-Wl,-s
   main-is:             Tests.hs
-  other-modules:       Data.DigestTests
+  other-modules:       Codec.Crypto.HKDFTests
+                     , Data.DigestTests
                      , Data.Digest.HashTests
                      , Data.Digest.MD5Tests
                      , Data.Digest.SHA1Tests
                      , Data.Digest.SHA2Tests
                      , Data.HMACTests
   build-depends:       base >=4.9 && <4.10
+                     , base16-bytestring >=0.1.1.6 && <0.2
                      , btls
                      , bytestring >=0.10 && <0.11
                      , process >=1.4.2 && <1.5

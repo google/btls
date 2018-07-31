@@ -1,4 +1,4 @@
--- Copyright 2017 Google LLC
+-- Copyright 2018 Google LLC
 --
 -- Licensed under the Apache License, Version 2.0 (the "License"); you may not
 -- use this file except in compliance with the License. You may obtain a copy of
@@ -12,19 +12,18 @@
 -- License for the specific language governing permissions and limitations under
 -- the License.
 
-module Main
-  ( main
+module Types
+  ( Salt(Salt)
+  , SecretKey(SecretKey)
   ) where
 
-import Test.Tasty (defaultMain, testGroup)
+import Data.ByteString (ByteString)
 
-import qualified Codec.Crypto.HKDFTests
-import qualified Data.DigestTests
-import qualified Data.HMACTests
+-- | A salt. Equality comparisons on this type are variable-time.
+newtype Salt = Salt ByteString
+  deriving (Eq, Ord, Show)
 
-main :: IO ()
-main = defaultMain $ testGroup "btls"
-  [ Codec.Crypto.HKDFTests.tests
-  , Data.DigestTests.tests
-  , Data.HMACTests.tests
-  ]
+-- | A secret key used as input to a cipher or HMAC. Equality comparisons on
+-- this type are variable-time.
+newtype SecretKey = SecretKey ByteString
+  deriving (Eq, Ord, Show)

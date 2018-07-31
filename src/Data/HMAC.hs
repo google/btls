@@ -31,13 +31,9 @@ import Data.Digest.Internal
 import Foreign.Ptr.ConstantTimeEquals (constantTimeEquals)
 import Internal.Base
 import Internal.HMAC
+import Types (SecretKey(SecretKey))
 
 type LazyByteString = ByteString.Lazy.ByteString
-
--- | A secret key used as input to a cipher or HMAC. Equality comparisons on
--- this type are variable-time.
-newtype SecretKey = SecretKey ByteString
-  deriving (Eq, Ord, Show)
 
 -- | A hash-based message authentication code. Equality comparisons on this type
 -- are constant-time.
