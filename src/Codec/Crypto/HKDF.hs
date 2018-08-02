@@ -19,13 +19,12 @@ module Codec.Crypto.HKDF
 
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Unsafe as ByteString
-import Foreign (Ptr, Storable(peek), alloca, allocaArray)
-import Foreign.C.Types
+import Foreign (Storable(peek), alloca, allocaArray)
 import Foreign.Marshal.Unsafe (unsafeLocalState)
-import Unsafe.Coerce (unsafeCoerce)
 
 import BTLS.BoringSSL.Digest (evpMaxMDSize)
 import BTLS.BoringSSL.HKDF
+import BTLS.Cast (asCUCharBuf)
 import BTLS.Types
   (AssociatedData(AssociatedData), Salt(Salt), SecretKey(SecretKey), noSalt)
 import Data.Digest.Internal (Algorithm(Algorithm))
@@ -63,6 +62,3 @@ expand (Algorithm md) (AssociatedData info) outLen (SecretKey secret) =
             (asCUCharBuf pSecret) (fromIntegral secretLen)
             (asCUCharBuf pInfo) (fromIntegral infoLen)
       SecretKey <$> ByteString.packCStringLen (pOutKey, outLen)
-
-asCUCharBuf :: Ptr CChar -> Ptr CUChar
-asCUCharBuf = unsafeCoerce

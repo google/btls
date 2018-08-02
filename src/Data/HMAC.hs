@@ -21,13 +21,11 @@ module Data.HMAC
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as ByteString.Lazy
 import qualified Data.ByteString.Unsafe as ByteString
-import Foreign (Ptr)
-import Foreign.C.Types
 import Foreign.Marshal.Unsafe (unsafeLocalState)
-import Unsafe.Coerce (unsafeCoerce)
 
 import BTLS.BoringSSL.Base
 import BTLS.BoringSSL.HMAC
+import BTLS.Cast (asCUCharBuf)
 import BTLS.ConstantTimeEquals (constantTimeEquals)
 import BTLS.Types (SecretKey(SecretKey))
 import Data.Digest.Internal
@@ -65,6 +63,3 @@ hmac (Algorithm md) (SecretKey key) =
     -- in Data.Digest, we'll let Haskell reinterpret-cast the buffers.
     update ctx buf len = hmacUpdate ctx (asCUCharBuf buf) len
     finalize ctx hmacOut pOutSize = hmacFinal ctx (asCUCharBuf hmacOut) pOutSize
-
-    asCUCharBuf :: Ptr CChar -> Ptr CUChar
-    asCUCharBuf = unsafeCoerce

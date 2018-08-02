@@ -22,13 +22,11 @@ module Data.Digest
   ) where
 
 import qualified Data.ByteString.Lazy as ByteString.Lazy
-import Foreign (Ptr)
-import Foreign.C.Types
 import Foreign.Marshal.Unsafe (unsafeLocalState)
-import Unsafe.Coerce (unsafeCoerce)
 
 import BTLS.BoringSSL.Base
 import BTLS.BoringSSL.Digest
+import BTLS.Cast (asCUCharBuf)
 import Data.Digest.Internal
 
 type LazyByteString = ByteString.Lazy.ByteString
@@ -56,6 +54,3 @@ hash (Algorithm md) =
       -- we're going to cheat and let Haskell reinterpret-cast 'mdOut' to 'Ptr
       -- CUChar.
       evpDigestFinalEx ctx (asCUCharBuf mdOut) pOutSize
-
-    asCUCharBuf :: Ptr CChar -> Ptr CUChar
-    asCUCharBuf = unsafeCoerce
