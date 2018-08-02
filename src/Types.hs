@@ -13,12 +13,18 @@
 -- the License.
 
 module Types
-  ( Salt(Salt), noSalt
+  ( AssociatedData(AssociatedData)
+  , Salt(Salt), noSalt
   , SecretKey(SecretKey)
   ) where
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as ByteString
+
+-- | Context or application-specific information. Equality comparisons on this
+-- type are variable-time.
+newtype AssociatedData = AssociatedData ByteString
+  deriving (Eq, Ord, Show)
 
 -- | A salt. Equality comparisons on this type are variable-time.
 newtype Salt = Salt ByteString

@@ -13,8 +13,8 @@
 -- the License.
 
 module Codec.Crypto.HKDF
-  ( Salt(Salt), SecretKey(SecretKey), noSalt
-  , extract
+  ( AssociatedData(AssociatedData), Salt(Salt), SecretKey(SecretKey), noSalt
+  , extract, expand
   ) where
 
 import qualified Data.ByteString as ByteString
@@ -27,7 +27,8 @@ import Unsafe.Coerce (unsafeCoerce)
 import Data.Digest.Internal (Algorithm(Algorithm))
 import Internal.Digest (evpMaxMDSize)
 import Internal.HKDF
-import Types (Salt(Salt), SecretKey(SecretKey), noSalt)
+import Types
+  (AssociatedData(AssociatedData), Salt(Salt), SecretKey(SecretKey), noSalt)
 
 -- | Computes an HKDF pseudorandom key (PRK) as specified by RFC 5869.
 extract :: Algorithm -> Salt -> SecretKey -> SecretKey
@@ -46,6 +47,22 @@ extract (Algorithm md) (Salt salt) (SecretKey secret) =
               (asCUCharBuf pSalt) (fromIntegral saltLen)
         outLen <- fromIntegral <$> peek pOutLen
         SecretKey <$> ByteString.packCStringLen (pOutKey, outLen)
-  where
-    asCUCharBuf :: Ptr CChar -> Ptr CUChar
-    asCUCharBuf = unsafeCoerce
+
+-- | Computes HKDF output key material (OKM) as specified by RFC 5869.
+expand :: Algorithm -> AssociatedData -> Int -> SecretKey -> SecretKey
+expand (Algorithm md) (AssociatedData info) outLen (SecretKey secret) =
+  unsafeLocalState $
+    allocaArray outLen $ \pOutKey -> do
+      -- @HKDF_expand@ won't mutate @secret@ or @info@, so the sharing inherent
+      -- in 'ByteString.unsafeUseAsCStringLen' is fine.
+      ByteString.unsafeUseAsCStringLen secret $ \(pSecret, secretLen) ->
+        ByteString.unsafeUseAsCStringLen info $ \(pInfo, infoLen) ->
+          hkdfExpand
+            (asCUCharBuf pOutKey) (fromIntegral outLen)
+            md
+            (asCUCharBuf pSecret) (fromIntegral secretLen)
+            (asCUCharBuf pInfo) (fromIntegral infoLen)
+      SecretKey <$> ByteString.packCStringLen (pOutKey, outLen)
+
+asCUCharBuf :: Ptr CChar -> Ptr CUChar
+asCUCharBuf = unsafeCoerce
