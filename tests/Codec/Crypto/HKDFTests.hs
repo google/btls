@@ -23,7 +23,7 @@ import qualified Data.ByteString.Char8 as ByteString.Char8
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit ((@?=), testCase)
 
-import Codec.Crypto.HKDF (Salt(Salt), SecretKey(SecretKey))
+import Codec.Crypto.HKDF (Salt(Salt), SecretKey(SecretKey), noSalt)
 import qualified Codec.Crypto.HKDF as HKDF
 import Data.Digest (sha1, sha256)
 
@@ -62,6 +62,11 @@ testRFC5869 = testGroup "RFC 5869 examples"
       (SecretKey $ ByteString.replicate 22 0x0b)
       (Salt "")
       (SecretKey $ hex "da8c8a73c7fa77288ec6f5e7c297786aa0d32d01")
+  , t "test case 7"
+      sha1
+      (SecretKey $ ByteString.replicate 22 0x0c)
+      noSalt
+      (SecretKey $ hex "2adccada18779e7c2077ad2eb19d3f3e731385dd")
   ]
   where
     t name hash ikm salt prk =

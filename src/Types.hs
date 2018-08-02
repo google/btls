@@ -13,15 +13,19 @@
 -- the License.
 
 module Types
-  ( Salt(Salt)
+  ( Salt(Salt), noSalt
   , SecretKey(SecretKey)
   ) where
 
 import Data.ByteString (ByteString)
+import qualified Data.ByteString as ByteString
 
 -- | A salt. Equality comparisons on this type are variable-time.
 newtype Salt = Salt ByteString
   deriving (Eq, Ord, Show)
+
+noSalt :: Salt
+noSalt = Salt ByteString.empty
 
 -- | A secret key used as input to a cipher or HMAC. Equality comparisons on
 -- this type are variable-time.

@@ -13,7 +13,7 @@
 -- the License.
 
 module Codec.Crypto.HKDF
-  ( Salt(Salt), SecretKey(SecretKey)
+  ( Salt(Salt), SecretKey(SecretKey), noSalt
   , extract
   ) where
 
@@ -27,7 +27,7 @@ import Unsafe.Coerce (unsafeCoerce)
 import Data.Digest.Internal (Algorithm(Algorithm))
 import Internal.Digest (evpMaxMDSize)
 import Internal.HKDF
-import Types (Salt(Salt), SecretKey(SecretKey))
+import Types (Salt(Salt), SecretKey(SecretKey), noSalt)
 
 -- | Computes an HKDF pseudorandom key (PRK) as specified by RFC 5869.
 extract :: Algorithm -> Salt -> SecretKey -> SecretKey
