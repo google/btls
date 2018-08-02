@@ -28,8 +28,8 @@ import Data.Word (Word8)
 import Foreign (ForeignPtr, Storable(peek), Ptr, alloca, allocaArray, withForeignPtr)
 import Foreign.C.Types
 
-import Internal.Base (EVPMD)
-import Internal.Digest (evpMaxMDSize)
+import BTLS.BoringSSL.Base (EVPMD)
+import BTLS.BoringSSL.Digest (evpMaxMDSize)
 
 type LazyByteString = ByteString.Lazy.ByteString
 

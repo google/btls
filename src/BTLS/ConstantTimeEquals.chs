@@ -12,16 +12,19 @@
 -- License for the specific language governing permissions and limitations under
 -- the License.
 
-module Foreign.Ptr.CreateWithFinalizer (createWithFinalizer) where
+module BTLS.ConstantTimeEquals where
 
-import Foreign
-  (FinalizerPtr, ForeignPtr, Ptr, Storable, addForeignPtrFinalizer,
-   mallocForeignPtr, withForeignPtr)
+import Foreign (Ptr)
+import Foreign.C.Types
 
-createWithFinalizer ::
-  Storable a => (Ptr a -> IO ()) -> FinalizerPtr a -> IO (ForeignPtr a)
-createWithFinalizer initialize finalize = do
-  fp <- mallocForeignPtr
-  withForeignPtr fp initialize
-  addForeignPtrFinalizer finalize fp
-  return fp
+import BTLS.Cast (asVoidPtr)
+
+#include <openssl/mem.h>
+
+-- | Directly compares two buffers for equality. This operation takes an amount
+-- of time dependent on the specified size but independent of either buffer's
+-- contents.
+constantTimeEquals :: Ptr a -> Ptr a -> Int -> IO Bool
+constantTimeEquals a b size =
+  let size' = fromIntegral size :: CULong in
+  (== 0) <$> {#call CRYPTO_memcmp as ^#} (asVoidPtr a) (asVoidPtr b) size'

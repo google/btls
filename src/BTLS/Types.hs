@@ -12,7 +12,7 @@
 -- License for the specific language governing permissions and limitations under
 -- the License.
 
-module Types
+module BTLS.Types
   ( AssociatedData(AssociatedData)
   , Salt(Salt), noSalt
   , SecretKey(SecretKey)

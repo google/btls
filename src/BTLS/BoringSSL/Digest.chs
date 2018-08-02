@@ -14,7 +14,7 @@
 
 {-# OPTIONS_GHC -Wno-missing-methods #-}
 
-module Internal.Digest
+module BTLS.BoringSSL.Digest
   ( evpMD5, evpSHA1, evpSHA224, evpSHA256, evpSHA384, evpSHA512
   , mallocEVPMDCtx
   , evpDigestInitEx, evpDigestUpdate, evpDigestFinalEx
@@ -23,11 +23,11 @@ module Internal.Digest
 
 import Foreign (FinalizerPtr, ForeignPtr, Ptr, Storable(alignment, sizeOf))
 import Foreign.C.Types
-import Foreign.Ptr.Cast (asVoidPtr)
 
-import Foreign.Ptr.CreateWithFinalizer (createWithFinalizer)
-{#import Internal.Base#}
-import Result
+{#import BTLS.BoringSSL.Base#}
+import BTLS.Cast (asVoidPtr)
+import BTLS.CreateWithFinalizer (createWithFinalizer)
+import BTLS.Result
 
 #include <openssl/digest.h>
 

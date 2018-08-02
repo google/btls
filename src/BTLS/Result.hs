@@ -12,7 +12,7 @@
 -- License for the specific language governing permissions and limitations under
 -- the License.
 
-module Result where
+module BTLS.Result where
 
 import Control.Exception (assert)
 import Foreign (throwIf_)

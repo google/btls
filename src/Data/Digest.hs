@@ -27,9 +27,9 @@ import Foreign.C.Types
 import Foreign.Marshal.Unsafe (unsafeLocalState)
 import Unsafe.Coerce (unsafeCoerce)
 
+import BTLS.BoringSSL.Base
+import BTLS.BoringSSL.Digest
 import Data.Digest.Internal
-import Internal.Base
-import Internal.Digest
 
 type LazyByteString = ByteString.Lazy.ByteString
 

@@ -12,15 +12,15 @@
 -- License for the specific language governing permissions and limitations under
 -- the License.
 
-module Internal.HKDF
+module BTLS.BoringSSL.HKDF
   ( hkdfExtract, hkdfExpand
   ) where
 
 import Foreign (Ptr)
 import Foreign.C.Types
 
-{#import Internal.Base#}
-import Result
+{#import BTLS.BoringSSL.Base#}
+import BTLS.Result
 
 #include <openssl/hkdf.h>
 

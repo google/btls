@@ -12,10 +12,16 @@
 -- License for the specific language governing permissions and limitations under
 -- the License.
 
-module Foreign.Ptr.Cast where
+module BTLS.CreateWithFinalizer (createWithFinalizer) where
 
-import Foreign (Ptr)
-import Unsafe.Coerce (unsafeCoerce)
+import Foreign
+  (FinalizerPtr, ForeignPtr, Ptr, Storable, addForeignPtrFinalizer,
+   mallocForeignPtr, withForeignPtr)
 
-asVoidPtr :: Ptr a -> Ptr ()
-asVoidPtr = unsafeCoerce
+createWithFinalizer ::
+  Storable a => (Ptr a -> IO ()) -> FinalizerPtr a -> IO (ForeignPtr a)
+createWithFinalizer initialize finalize = do
+  fp <- mallocForeignPtr
+  withForeignPtr fp initialize
+  addForeignPtrFinalizer finalize fp
+  return fp

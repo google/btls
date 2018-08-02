@@ -14,7 +14,7 @@
 
 {-# OPTIONS_GHC -Wno-missing-methods #-}
 
-module Internal.HMAC
+module BTLS.BoringSSL.HMAC
   ( mallocHMACCtx
   , hmacInitEx, hmacUpdate, hmacFinal
   ) where
@@ -22,10 +22,10 @@ module Internal.HMAC
 import Foreign (FinalizerPtr, ForeignPtr, Ptr, Storable(alignment, sizeOf))
 import Foreign.C.Types
 
-import Foreign.Ptr.Cast (asVoidPtr)
-import Foreign.Ptr.CreateWithFinalizer (createWithFinalizer)
-{#import Internal.Base#}
-import Result
+{#import BTLS.BoringSSL.Base#}
+import BTLS.Cast (asVoidPtr)
+import BTLS.CreateWithFinalizer (createWithFinalizer)
+import BTLS.Result
 
 #include <openssl/hmac.h>
 

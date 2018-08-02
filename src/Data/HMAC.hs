@@ -26,12 +26,12 @@ import Foreign.C.Types
 import Foreign.Marshal.Unsafe (unsafeLocalState)
 import Unsafe.Coerce (unsafeCoerce)
 
+import BTLS.BoringSSL.Base
+import BTLS.BoringSSL.HMAC
+import BTLS.ConstantTimeEquals (constantTimeEquals)
+import BTLS.Types (SecretKey(SecretKey))
 import Data.Digest.Internal
   (Algorithm(Algorithm), Digest(Digest), initUpdateFinalize)
-import Foreign.Ptr.ConstantTimeEquals (constantTimeEquals)
-import Internal.Base
-import Internal.HMAC
-import Types (SecretKey(SecretKey))
 
 type LazyByteString = ByteString.Lazy.ByteString
 

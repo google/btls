@@ -14,7 +14,7 @@
 
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 
-module Internal.Base where
+module BTLS.BoringSSL.Base where
 
 import Foreign (Ptr, nullPtr)
 

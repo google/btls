@@ -24,11 +24,11 @@ import Foreign.C.Types
 import Foreign.Marshal.Unsafe (unsafeLocalState)
 import Unsafe.Coerce (unsafeCoerce)
 
-import Data.Digest.Internal (Algorithm(Algorithm))
-import Internal.Digest (evpMaxMDSize)
-import Internal.HKDF
-import Types
+import BTLS.BoringSSL.Digest (evpMaxMDSize)
+import BTLS.BoringSSL.HKDF
+import BTLS.Types
   (AssociatedData(AssociatedData), Salt(Salt), SecretKey(SecretKey), noSalt)
+import Data.Digest.Internal (Algorithm(Algorithm))
 
 -- | Computes an HKDF pseudorandom key (PRK) as specified by RFC 5869.
 extract :: Algorithm -> Salt -> SecretKey -> SecretKey
