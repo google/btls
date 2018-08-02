@@ -25,8 +25,8 @@ import Foreign.Marshal.Unsafe (unsafeLocalState)
 
 import BTLS.BoringSSL.Base
 import BTLS.BoringSSL.HMAC
+import BTLS.BoringSSL.Mem (cryptoMemcmp)
 import BTLS.Cast (asCUCharBuf)
-import BTLS.ConstantTimeEquals (constantTimeEquals)
 import BTLS.Types (SecretKey(SecretKey))
 import Data.Digest.Internal
   (Algorithm(Algorithm), Digest(Digest), initUpdateFinalize)
@@ -42,7 +42,7 @@ instance Eq HMAC where
     unsafeLocalState $
       ByteString.unsafeUseAsCStringLen a $ \(a', size) ->
         ByteString.unsafeUseAsCStringLen b $ \(b', _) ->
-          constantTimeEquals a' b' size
+          cryptoMemcmp a' b' size
 
 instance Show HMAC where
   show (HMAC m) = show (Digest m)

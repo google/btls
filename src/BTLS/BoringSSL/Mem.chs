@@ -12,7 +12,7 @@
 -- License for the specific language governing permissions and limitations under
 -- the License.
 
-module BTLS.ConstantTimeEquals where
+module BTLS.BoringSSL.Mem where
 
 import Foreign (Ptr)
 import Foreign.C.Types
@@ -24,7 +24,7 @@ import BTLS.Cast (asVoidPtr)
 -- | Directly compares two buffers for equality. This operation takes an amount
 -- of time dependent on the specified size but independent of either buffer's
 -- contents.
-constantTimeEquals :: Ptr a -> Ptr a -> Int -> IO Bool
-constantTimeEquals a b size =
+cryptoMemcmp :: Ptr a -> Ptr a -> Int -> IO Bool
+cryptoMemcmp a b size =
   let size' = fromIntegral size :: CULong in
   (== 0) <$> {#call CRYPTO_memcmp as ^#} (asVoidPtr a) (asVoidPtr b) size'

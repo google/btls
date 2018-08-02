@@ -74,8 +74,8 @@ library
                      , BTLS.BoringSSL.Digest
                      , BTLS.BoringSSL.HKDF
                      , BTLS.BoringSSL.HMAC
+                     , BTLS.BoringSSL.Mem
                      , BTLS.Cast
-                     , BTLS.ConstantTimeEquals
                      , BTLS.CreateWithFinalizer
                      , BTLS.Result
                      , BTLS.Types
