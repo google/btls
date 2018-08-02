@@ -26,8 +26,9 @@ import BTLS.BoringSSL.Digest (evpMaxMDSize)
 import BTLS.BoringSSL.HKDF
 import BTLS.Cast (asCUCharBuf)
 import BTLS.Types
-  (AssociatedData(AssociatedData), Salt(Salt), SecretKey(SecretKey), noSalt)
-import Data.Digest.Internal (Algorithm(Algorithm))
+  ( Algorithm(Algorithm), AssociatedData(AssociatedData), Salt(Salt)
+  , SecretKey(SecretKey), noSalt
+  )
 
 -- | Computes an HKDF pseudorandom key (PRK) as specified by RFC 5869.
 extract :: Algorithm -> Salt -> SecretKey -> SecretKey

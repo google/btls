@@ -12,40 +12,20 @@
 -- License for the specific language governing permissions and limitations under
 -- the License.
 
-module Data.Digest.Internal
-  ( Algorithm(..)
-  , Digest(..)
-  , initUpdateFinalize
+module BTLS.BoringSSLPatterns
+  ( initUpdateFinalize
   ) where
 
-import Data.Bits (Bits((.&.)), shiftR)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Unsafe as ByteString
 import qualified Data.ByteString.Lazy as ByteString.Lazy
-import Data.Char (intToDigit)
-import Data.Word (Word8)
 import Foreign (ForeignPtr, Storable(peek), Ptr, alloca, allocaArray, withForeignPtr)
 import Foreign.C.Types
 
-import BTLS.BoringSSL.Base (EVPMD)
 import BTLS.BoringSSL.Digest (evpMaxMDSize)
 
 type LazyByteString = ByteString.Lazy.ByteString
-
--- | A cryptographic hash function.
-newtype Algorithm = Algorithm (Ptr EVPMD)
-
--- | The result of a hash operation.
-newtype Digest = Digest ByteString
-  deriving (Eq, Ord)
-
-instance Show Digest where
-  show (Digest d) = ByteString.foldr showHexPadded [] d
-    where
-      showHexPadded b xs =
-        hexit (b `shiftR` 4 .&. 0x0f) : hexit (b .&. 0x0f) : xs
-      hexit = intToDigit . fromIntegral :: Word8 -> Char
 
 -- | Encapsulates a common pattern of operation between hashing and HMAC
 -- computation. Both of these operations require an allocated context local to

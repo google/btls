@@ -12,19 +12,35 @@
 -- License for the specific language governing permissions and limitations under
 -- the License.
 
-module BTLS.Types
-  ( AssociatedData(AssociatedData)
-  , Salt(Salt), noSalt
-  , SecretKey(SecretKey)
-  ) where
+module BTLS.Types where
 
+import Data.Bits (Bits((.&.)), shiftR)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as ByteString
+import Data.Char (intToDigit)
+import Data.Word (Word8)
+import Foreign (Ptr)
+
+import BTLS.BoringSSL.Base (EVPMD)
+
+-- | A cryptographic hash function.
+newtype Algorithm = Algorithm (Ptr EVPMD)
 
 -- | Context or application-specific information. Equality comparisons on this
 -- type are variable-time.
 newtype AssociatedData = AssociatedData ByteString
   deriving (Eq, Ord, Show)
+
+-- | The result of a hash operation.
+newtype Digest = Digest ByteString
+  deriving (Eq, Ord)
+
+instance Show Digest where
+  show (Digest d) = ByteString.foldr showHexPadded [] d
+    where
+      showHexPadded b xs =
+        hexit (b `shiftR` 4 .&. 0x0f) : hexit (b .&. 0x0f) : xs
+      hexit = intToDigit . fromIntegral :: Word8 -> Char
 
 -- | A salt. Equality comparisons on this type are variable-time.
 newtype Salt = Salt ByteString

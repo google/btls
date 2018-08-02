@@ -75,11 +75,11 @@ library
                      , BTLS.BoringSSL.HKDF
                      , BTLS.BoringSSL.HMAC
                      , BTLS.BoringSSL.Mem
+                     , BTLS.BoringSSLPatterns
                      , BTLS.Cast
                      , BTLS.CreateWithFinalizer
                      , BTLS.Result
                      , BTLS.Types
-                     , Data.Digest.Internal
   c-sources:           cbits/btls.c
   -- Use special names for the BoringSSL libraries to avoid accidentally pulling
   -- in OpenSSL.

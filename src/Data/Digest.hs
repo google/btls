@@ -26,8 +26,9 @@ import Foreign.Marshal.Unsafe (unsafeLocalState)
 
 import BTLS.BoringSSL.Base
 import BTLS.BoringSSL.Digest
+import BTLS.BoringSSLPatterns (initUpdateFinalize)
 import BTLS.Cast (asCUCharBuf)
-import Data.Digest.Internal
+import BTLS.Types (Algorithm(Algorithm), Digest(Digest))
 
 type LazyByteString = ByteString.Lazy.ByteString
 
