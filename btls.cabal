@@ -70,11 +70,13 @@ library
   exposed-modules:     Codec.Crypto.HKDF
                      , Data.Digest
                      , Data.HMAC
+                     , System.Random.Crypto
   other-modules:       BTLS.BoringSSL.Base
                      , BTLS.BoringSSL.Digest
                      , BTLS.BoringSSL.HKDF
                      , BTLS.BoringSSL.HMAC
                      , BTLS.BoringSSL.Mem
+                     , BTLS.BoringSSL.Rand
                      , BTLS.BoringSSLPatterns
                      , BTLS.Cast
                      , BTLS.CreateWithFinalizer
