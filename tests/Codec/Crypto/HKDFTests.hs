@@ -91,7 +91,8 @@ testRFC5869 = testGroup "RFC 5869 examples"
   ]
   where
     t name hash ikm salt info len prk okm =
-      testGroup name [ testCase "extract" $ HKDF.extract hash salt ikm @?= prk
+      testGroup name [ testCase "hkdf" $ HKDF.hkdf hash salt info len ikm @?= okm
+                     , testCase "extract" $ HKDF.extract hash salt ikm @?= prk
                      , testCase "expand" $ HKDF.expand hash info len prk @?= okm
                      ]
 

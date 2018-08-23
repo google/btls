@@ -14,7 +14,7 @@
 
 module Codec.Crypto.HKDF
   ( AssociatedData(AssociatedData), Salt(Salt), SecretKey(SecretKey), noSalt
-  , extract, expand
+  , hkdf, extract, expand
   ) where
 
 import qualified Data.ByteString as ByteString
@@ -30,6 +30,10 @@ import BTLS.Types
   ( Algorithm(Algorithm), AssociatedData(AssociatedData), Salt(Salt)
   , SecretKey(SecretKey), noSalt
   )
+
+-- | Computes an HKDF as specified by RFC 5869.
+hkdf :: Algorithm -> Salt -> AssociatedData -> Int -> SecretKey -> SecretKey
+hkdf md salt info outLen = expand md info outLen . extract md salt
 
 -- | Computes an HKDF pseudorandom key (PRK) as specified by RFC 5869.
 extract :: Algorithm -> Salt -> SecretKey -> SecretKey
