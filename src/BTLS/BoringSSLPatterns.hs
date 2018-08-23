@@ -18,13 +18,12 @@ module BTLS.BoringSSLPatterns
   ) where
 
 import Data.ByteString (ByteString)
-import qualified Data.ByteString as ByteString
-import qualified Data.ByteString.Unsafe as ByteString
 import qualified Data.ByteString.Lazy as ByteString.Lazy
 import Foreign (ForeignPtr, Storable(peek), Ptr, alloca, allocaArray, withForeignPtr)
 import Foreign.C.Types
 
 import BTLS.BoringSSL.Digest (evpMaxMDSize)
+import BTLS.Buffer (packCUStringLen, unsafeUseAsCUStringLen)
 
 type LazyByteString = ByteString.Lazy.ByteString
 
@@ -41,8 +40,8 @@ type LazyByteString = ByteString.Lazy.ByteString
 initUpdateFinalize ::
      IO (ForeignPtr ctx)
   -> (Ptr ctx -> IO ())
-  -> (Ptr ctx -> Ptr CChar -> CULong -> IO ())
-  -> (Ptr ctx -> Ptr CChar -> Ptr CUInt -> IO ())
+  -> (Ptr ctx -> Ptr CUChar -> CULong -> IO ())
+  -> (Ptr ctx -> Ptr CUChar -> Ptr CUInt -> IO ())
   -> LazyByteString
   -> IO ByteString
 initUpdateFinalize mallocCtx initialize update finalize bytes = do
@@ -54,9 +53,8 @@ initUpdateFinalize mallocCtx initialize update finalize bytes = do
   where
     updateBytes ctx chunk =
       -- The updater won't mutate its arguments, so the sharing inherent in
-      -- 'ByteString.unsafeUseAsCStringLen' is fine.
-      ByteString.unsafeUseAsCStringLen chunk $ \(buf, len) ->
-        update ctx buf (fromIntegral len)
+      -- 'unsafeUseAsCUStringLen' is fine.
+      unsafeUseAsCUStringLen chunk $ \(buf, len) -> update ctx buf len
 
 -- | Allocates a buffer, runs a function 'f' to partially fill it, and packs the
 -- filled data into a 'ByteString'. 'f' must write the size of the filled data,
@@ -67,11 +65,11 @@ initUpdateFinalize mallocCtx initialize update finalize bytes = do
 onBufferOfMaxSize ::
      (Integral size, Storable size)
   => Int
-  -> (Ptr CChar -> Ptr size -> IO ())
+  -> (Ptr CUChar -> Ptr size -> IO ())
   -> IO ByteString
 onBufferOfMaxSize maxSize f =
   allocaArray maxSize $ \pOut ->
     alloca $ \pOutLen -> do
       f pOut pOutLen
-      outLen <- fromIntegral <$> peek pOutLen
-      ByteString.packCStringLen (pOut, outLen)
+      outLen <- peek pOutLen
+      packCUStringLen (pOut, outLen)

@@ -17,15 +17,13 @@ module Codec.Crypto.HKDF
   , hkdf, extract, expand
   ) where
 
-import qualified Data.ByteString as ByteString
-import qualified Data.ByteString.Unsafe as ByteString
 import Foreign (allocaArray)
 import Foreign.Marshal.Unsafe (unsafeLocalState)
 
 import BTLS.BoringSSL.Digest (evpMaxMDSize)
 import BTLS.BoringSSL.HKDF
 import BTLS.BoringSSLPatterns (onBufferOfMaxSize)
-import BTLS.Cast (asCUCharBuf)
+import BTLS.Buffer (packCUStringLen, unsafeUseAsCUStringLen)
 import BTLS.Types
   ( Algorithm(Algorithm), AssociatedData(AssociatedData), Salt(Salt)
   , SecretKey(SecretKey), noSalt
@@ -42,14 +40,10 @@ extract (Algorithm md) (Salt salt) (SecretKey secret) =
     unsafeLocalState $
       onBufferOfMaxSize evpMaxMDSize $ \pOutKey pOutLen -> do
         -- @HKDF_extract@ won't mutate @secret@ or @salt@, so the sharing inherent
-        -- in 'ByteString.unsafeUseAsCStringLen' is fine.
-        ByteString.unsafeUseAsCStringLen secret $ \(pSecret, secretLen) ->
-          ByteString.unsafeUseAsCStringLen salt $ \(pSalt, saltLen) ->
-            hkdfExtract
-              (asCUCharBuf pOutKey) pOutLen
-              md
-              (asCUCharBuf pSecret) (fromIntegral secretLen)
-              (asCUCharBuf pSalt) (fromIntegral saltLen)
+        -- in 'unsafeUseAsCUStringLen' is fine.
+        unsafeUseAsCUStringLen secret $ \(pSecret, secretLen) ->
+          unsafeUseAsCUStringLen salt $ \(pSalt, saltLen) ->
+            hkdfExtract pOutKey pOutLen md pSecret secretLen pSalt saltLen
 
 -- | Computes HKDF output key material (OKM) as specified by RFC 5869.
 expand :: Algorithm -> AssociatedData -> Int -> SecretKey -> SecretKey
@@ -58,12 +52,8 @@ expand (Algorithm md) (AssociatedData info) outLen (SecretKey secret) =
     unsafeLocalState $
       allocaArray outLen $ \pOutKey -> do
         -- @HKDF_expand@ won't mutate @secret@ or @info@, so the sharing inherent
-        -- in 'ByteString.unsafeUseAsCStringLen' is fine.
-        ByteString.unsafeUseAsCStringLen secret $ \(pSecret, secretLen) ->
-          ByteString.unsafeUseAsCStringLen info $ \(pInfo, infoLen) ->
-            hkdfExpand
-              (asCUCharBuf pOutKey) (fromIntegral outLen)
-              md
-              (asCUCharBuf pSecret) (fromIntegral secretLen)
-              (asCUCharBuf pInfo) (fromIntegral infoLen)
-        ByteString.packCStringLen (pOutKey, outLen)
+        -- in 'unsafeUseAsCUStringLen' is fine.
+        unsafeUseAsCUStringLen secret $ \(pSecret, secretLen) ->
+          unsafeUseAsCUStringLen info $ \(pInfo, infoLen) ->
+            hkdfExpand pOutKey (fromIntegral outLen) md pSecret secretLen pInfo infoLen
+        packCUStringLen (pOutKey, outLen)

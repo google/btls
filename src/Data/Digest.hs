@@ -27,7 +27,6 @@ import Foreign.Marshal.Unsafe (unsafeLocalState)
 import BTLS.BoringSSL.Base
 import BTLS.BoringSSL.Digest
 import BTLS.BoringSSLPatterns (initUpdateFinalize)
-import BTLS.Cast (asCUCharBuf)
 import BTLS.Types (Algorithm(Algorithm), Digest(Digest))
 
 type LazyByteString = ByteString.Lazy.ByteString
@@ -45,13 +44,5 @@ hash :: Algorithm -> LazyByteString -> Digest
 hash (Algorithm md) =
   Digest
     . unsafeLocalState
-    . initUpdateFinalize mallocEVPMDCtx initialize evpDigestUpdate finalize
-  where
-    initialize ctx = evpDigestInitEx ctx md noEngine
-
-    finalize ctx mdOut pOutSize =
-      -- 'mdOut' is a 'Ptr CChar'. However, to make life more interesting,
-      -- 'evpDigestFinalEx' requires a 'Ptr CUChar'. To work around this,
-      -- we're going to cheat and let Haskell reinterpret-cast 'mdOut' to 'Ptr
-      -- CUChar.
-      evpDigestFinalEx ctx (asCUCharBuf mdOut) pOutSize
+    . initUpdateFinalize mallocEVPMDCtx initialize evpDigestUpdate evpDigestFinalEx
+  where initialize ctx = evpDigestInitEx ctx md noEngine

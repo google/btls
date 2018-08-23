@@ -15,11 +15,7 @@
 module BTLS.Cast where
 
 import Foreign (Ptr)
-import Foreign.C.Types
 import Unsafe.Coerce (unsafeCoerce)
-
-asCUCharBuf :: Ptr CChar -> Ptr CUChar
-asCUCharBuf = unsafeCoerce
 
 asVoidPtr :: Ptr a -> Ptr ()
 asVoidPtr = unsafeCoerce

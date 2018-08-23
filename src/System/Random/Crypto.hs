@@ -17,15 +17,14 @@ module System.Random.Crypto
   ) where
 
 import Data.ByteString (ByteString)
-import qualified Data.ByteString as ByteString
 import Foreign (allocaArray)
 
 import BTLS.BoringSSL.Rand (randBytes)
-import BTLS.Cast (asCUCharBuf)
+import BTLS.Buffer (packCUStringLen)
 
 -- | Generates a cryptographically random buffer of the specified size.
 randomBytes :: Int -> IO ByteString
 randomBytes len =
   allocaArray len $ \pBuf -> do
-    randBytes (asCUCharBuf pBuf) (fromIntegral len)
-    ByteString.packCStringLen (pBuf, len)
+    randBytes pBuf (fromIntegral len)
+    packCUStringLen (pBuf, len)

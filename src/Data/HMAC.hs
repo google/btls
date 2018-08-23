@@ -27,7 +27,7 @@ import BTLS.BoringSSL.Base
 import BTLS.BoringSSL.HMAC
 import BTLS.BoringSSL.Mem (cryptoMemcmp)
 import BTLS.BoringSSLPatterns (initUpdateFinalize)
-import BTLS.Cast (asCUCharBuf)
+import BTLS.Buffer (unsafeUseAsCUStringLen)
 import BTLS.Types (Algorithm(Algorithm), Digest(Digest), SecretKey(SecretKey))
 
 type LazyByteString = ByteString.Lazy.ByteString
@@ -51,14 +51,8 @@ hmac :: Algorithm -> SecretKey -> LazyByteString -> HMAC
 hmac (Algorithm md) (SecretKey key) =
   HMAC
     . unsafeLocalState
-    . initUpdateFinalize mallocHMACCtx initialize update finalize
+    . initUpdateFinalize mallocHMACCtx initialize hmacUpdate hmacFinal
   where
     initialize ctx =
-      ByteString.unsafeUseAsCStringLen key $ \(keyBytes, keySize) ->
-        hmacInitEx ctx keyBytes (fromIntegral keySize) md noEngine
-
-    -- initUpdateFinalize deals with buffers that are 'Ptr CChar'. However,
-    -- BoringSSL's HMAC functions deal with buffers that are 'Ptr CUChar'. As
-    -- in Data.Digest, we'll let Haskell reinterpret-cast the buffers.
-    update ctx buf len = hmacUpdate ctx (asCUCharBuf buf) len
-    finalize ctx hmacOut pOutSize = hmacFinal ctx (asCUCharBuf hmacOut) pOutSize
+      unsafeUseAsCUStringLen key $ \(keyBytes, keySize) ->
+        hmacInitEx ctx keyBytes keySize md noEngine
