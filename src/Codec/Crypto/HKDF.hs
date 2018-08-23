@@ -19,11 +19,12 @@ module Codec.Crypto.HKDF
 
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Unsafe as ByteString
-import Foreign (Storable(peek), alloca, allocaArray)
+import Foreign (allocaArray)
 import Foreign.Marshal.Unsafe (unsafeLocalState)
 
 import BTLS.BoringSSL.Digest (evpMaxMDSize)
 import BTLS.BoringSSL.HKDF
+import BTLS.BoringSSLPatterns (onBufferOfMaxSize)
 import BTLS.Cast (asCUCharBuf)
 import BTLS.Types
   ( Algorithm(Algorithm), AssociatedData(AssociatedData), Salt(Salt)
@@ -33,9 +34,9 @@ import BTLS.Types
 -- | Computes an HKDF pseudorandom key (PRK) as specified by RFC 5869.
 extract :: Algorithm -> Salt -> SecretKey -> SecretKey
 extract (Algorithm md) (Salt salt) (SecretKey secret) =
-  unsafeLocalState $
-    allocaArray evpMaxMDSize $ \pOutKey ->
-      alloca $ \pOutLen -> do
+  SecretKey $
+    unsafeLocalState $
+      onBufferOfMaxSize evpMaxMDSize $ \pOutKey pOutLen -> do
         -- @HKDF_extract@ won't mutate @secret@ or @salt@, so the sharing inherent
         -- in 'ByteString.unsafeUseAsCStringLen' is fine.
         ByteString.unsafeUseAsCStringLen secret $ \(pSecret, secretLen) ->
@@ -45,21 +46,20 @@ extract (Algorithm md) (Salt salt) (SecretKey secret) =
               md
               (asCUCharBuf pSecret) (fromIntegral secretLen)
               (asCUCharBuf pSalt) (fromIntegral saltLen)
-        outLen <- fromIntegral <$> peek pOutLen
-        SecretKey <$> ByteString.packCStringLen (pOutKey, outLen)
 
 -- | Computes HKDF output key material (OKM) as specified by RFC 5869.
 expand :: Algorithm -> AssociatedData -> Int -> SecretKey -> SecretKey
 expand (Algorithm md) (AssociatedData info) outLen (SecretKey secret) =
-  unsafeLocalState $
-    allocaArray outLen $ \pOutKey -> do
-      -- @HKDF_expand@ won't mutate @secret@ or @info@, so the sharing inherent
-      -- in 'ByteString.unsafeUseAsCStringLen' is fine.
-      ByteString.unsafeUseAsCStringLen secret $ \(pSecret, secretLen) ->
-        ByteString.unsafeUseAsCStringLen info $ \(pInfo, infoLen) ->
-          hkdfExpand
-            (asCUCharBuf pOutKey) (fromIntegral outLen)
-            md
-            (asCUCharBuf pSecret) (fromIntegral secretLen)
-            (asCUCharBuf pInfo) (fromIntegral infoLen)
-      SecretKey <$> ByteString.packCStringLen (pOutKey, outLen)
+  SecretKey $
+    unsafeLocalState $
+      allocaArray outLen $ \pOutKey -> do
+        -- @HKDF_expand@ won't mutate @secret@ or @info@, so the sharing inherent
+        -- in 'ByteString.unsafeUseAsCStringLen' is fine.
+        ByteString.unsafeUseAsCStringLen secret $ \(pSecret, secretLen) ->
+          ByteString.unsafeUseAsCStringLen info $ \(pInfo, infoLen) ->
+            hkdfExpand
+              (asCUCharBuf pOutKey) (fromIntegral outLen)
+              md
+              (asCUCharBuf pSecret) (fromIntegral secretLen)
+              (asCUCharBuf pInfo) (fromIntegral infoLen)
+        ByteString.packCStringLen (pOutKey, outLen)

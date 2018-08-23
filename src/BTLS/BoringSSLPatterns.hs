@@ -14,6 +14,7 @@
 
 module BTLS.BoringSSLPatterns
   ( initUpdateFinalize
+  , onBufferOfMaxSize
   ) where
 
 import Data.ByteString (ByteString)
@@ -49,14 +50,28 @@ initUpdateFinalize mallocCtx initialize update finalize bytes = do
   withForeignPtr ctxFP $ \ctx -> do
     initialize ctx
     mapM_ (updateBytes ctx) (ByteString.Lazy.toChunks bytes)
-    allocaArray evpMaxMDSize $ \rOut ->
-      alloca $ \pOutSize -> do
-        finalize ctx rOut pOutSize
-        outSize <- fromIntegral <$> peek pOutSize
-        ByteString.packCStringLen (rOut, outSize)
+    onBufferOfMaxSize evpMaxMDSize (finalize ctx)
   where
     updateBytes ctx chunk =
       -- The updater won't mutate its arguments, so the sharing inherent in
       -- 'ByteString.unsafeUseAsCStringLen' is fine.
       ByteString.unsafeUseAsCStringLen chunk $ \(buf, len) ->
         update ctx buf (fromIntegral len)
+
+-- | Allocates a buffer, runs a function 'f' to partially fill it, and packs the
+-- filled data into a 'ByteString'. 'f' must write the size of the filled data,
+-- in bytes and not including any trailing null, into its second argument.
+--
+-- If 'f' is safe to use under 'unsafeLocalState', this whole function is safe
+-- to use under 'unsafeLocalState'.
+onBufferOfMaxSize ::
+     (Integral size, Storable size)
+  => Int
+  -> (Ptr CChar -> Ptr size -> IO ())
+  -> IO ByteString
+onBufferOfMaxSize maxSize f =
+  allocaArray maxSize $ \pOut ->
+    alloca $ \pOutLen -> do
+      f pOut pOutLen
+      outLen <- fromIntegral <$> peek pOutLen
+      ByteString.packCStringLen (pOut, outLen)
