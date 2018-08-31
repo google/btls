@@ -23,7 +23,7 @@ import Foreign.Marshal.Unsafe (unsafeLocalState)
 import BTLS.BoringSSL.Digest (evpMaxMDSize)
 import BTLS.BoringSSL.HKDF
 import BTLS.BoringSSLPatterns (onBufferOfMaxSize)
-import BTLS.Buffer (packCUStringLen, unsafeUseAsCUStringLen)
+import BTLS.Buffer (packCUStringLen)
 import BTLS.Types
   ( Algorithm(Algorithm), AssociatedData(AssociatedData), Salt(Salt)
   , SecretKey(SecretKey), noSalt
@@ -39,11 +39,7 @@ extract (Algorithm md) (Salt salt) (SecretKey secret) =
   SecretKey $
     unsafeLocalState $
       onBufferOfMaxSize evpMaxMDSize $ \pOutKey pOutLen -> do
-        -- @HKDF_extract@ won't mutate @secret@ or @salt@, so the sharing inherent
-        -- in 'unsafeUseAsCUStringLen' is fine.
-        unsafeUseAsCUStringLen secret $ \(pSecret, secretLen) ->
-          unsafeUseAsCUStringLen salt $ \(pSalt, saltLen) ->
-            hkdfExtract pOutKey pOutLen md pSecret secretLen pSalt saltLen
+        hkdfExtract pOutKey pOutLen md secret salt
 
 -- | Computes HKDF output key material (OKM) as specified by RFC 5869.
 expand :: Algorithm -> AssociatedData -> Int -> SecretKey -> SecretKey
@@ -51,9 +47,5 @@ expand (Algorithm md) (AssociatedData info) outLen (SecretKey secret) =
   SecretKey $
     unsafeLocalState $
       allocaArray outLen $ \pOutKey -> do
-        -- @HKDF_expand@ won't mutate @secret@ or @info@, so the sharing inherent
-        -- in 'unsafeUseAsCUStringLen' is fine.
-        unsafeUseAsCUStringLen secret $ \(pSecret, secretLen) ->
-          unsafeUseAsCUStringLen info $ \(pInfo, infoLen) ->
-            hkdfExpand pOutKey (fromIntegral outLen) md pSecret secretLen pInfo infoLen
+        hkdfExpand pOutKey (fromIntegral outLen) md secret info
         packCUStringLen (pOutKey, outLen)

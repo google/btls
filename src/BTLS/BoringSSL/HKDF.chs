@@ -16,18 +16,21 @@ module BTLS.BoringSSL.HKDF
   ( hkdfExtract, hkdfExpand
   ) where
 
+import Data.ByteString (ByteString)
 import Foreign (Ptr)
 import Foreign.C.Types
 
 {#import BTLS.BoringSSL.Base#}
+import BTLS.Buffer (unsafeUseAsCBuffer)
 import BTLS.Result
 
 #include <openssl/hkdf.h>
 
 {#fun HKDF_extract as hkdfExtract
-  { id `Ptr CUChar', id `Ptr CULong', `Ptr EVPMD', id `Ptr CUChar', id `CULong'
-  , id `Ptr CUChar', id `CULong' } -> `()' requireSuccess*-#}
+  { id `Ptr CUChar', id `Ptr CULong', `Ptr EVPMD'
+  , unsafeUseAsCBuffer* `ByteString'&, unsafeUseAsCBuffer* `ByteString'& }
+  -> `()' requireSuccess*-#}
 
 {#fun HKDF_expand as hkdfExpand
-  { id `Ptr CUChar', id `CULong', `Ptr EVPMD', id `Ptr CUChar', id `CULong'
-  , id `Ptr CUChar', id `CULong' } -> `()' requireSuccess*-#}
+  { id `Ptr CUChar', id `CULong', `Ptr EVPMD', unsafeUseAsCBuffer* `ByteString'&
+  , unsafeUseAsCBuffer* `ByteString'& } -> `()' requireSuccess*-#}

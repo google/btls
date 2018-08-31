@@ -19,11 +19,12 @@ module BTLS.BoringSSL.HMAC
   , hmacInitEx, hmacUpdate, hmacFinal
   ) where
 
+import Data.ByteString (ByteString)
 import Foreign (FinalizerPtr, ForeignPtr, Ptr, Storable(alignment, sizeOf))
 import Foreign.C.Types
 
 {#import BTLS.BoringSSL.Base#}
-import BTLS.Cast (asVoidPtr)
+import BTLS.Buffer (unsafeUseAsCBuffer)
 import BTLS.CreateWithFinalizer (createWithFinalizer)
 import BTLS.Result
 
@@ -37,11 +38,11 @@ foreign import ccall "&HMAC_CTX_cleanup"
   hmacCtxCleanup :: FinalizerPtr HMACCtx
 
 {#fun HMAC_Init_ex as hmacInitEx
-  {`Ptr HMACCtx', asVoidPtr `Ptr a', id `CULong', `Ptr EVPMD', `Ptr Engine'}
+  {`Ptr HMACCtx', unsafeUseAsCBuffer* `ByteString'&, `Ptr EVPMD', `Ptr Engine'}
   -> `()' requireSuccess*-#}
 
 {#fun HMAC_Update as hmacUpdate
-  {`Ptr HMACCtx', id `Ptr CUChar', id `CULong'} -> `()' alwaysSucceeds*-#}
+  {`Ptr HMACCtx', unsafeUseAsCBuffer* `ByteString'&} -> `()' alwaysSucceeds*-#}
 
 {#fun HMAC_Final as hmacFinal
   {`Ptr HMACCtx', id `Ptr CUChar', id `Ptr CUInt'} -> `()' requireSuccess*-#}

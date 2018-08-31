@@ -23,7 +23,7 @@ import Foreign (ForeignPtr, Storable(peek), Ptr, alloca, allocaArray, withForeig
 import Foreign.C.Types
 
 import BTLS.BoringSSL.Digest (evpMaxMDSize)
-import BTLS.Buffer (packCUStringLen, unsafeUseAsCUStringLen)
+import BTLS.Buffer (packCUStringLen)
 
 type LazyByteString = ByteString.Lazy.ByteString
 
@@ -40,7 +40,7 @@ type LazyByteString = ByteString.Lazy.ByteString
 initUpdateFinalize ::
      IO (ForeignPtr ctx)
   -> (Ptr ctx -> IO ())
-  -> (Ptr ctx -> Ptr CUChar -> CULong -> IO ())
+  -> (Ptr ctx -> ByteString -> IO ())
   -> (Ptr ctx -> Ptr CUChar -> Ptr CUInt -> IO ())
   -> LazyByteString
   -> IO ByteString
@@ -48,13 +48,8 @@ initUpdateFinalize mallocCtx initialize update finalize bytes = do
   ctxFP <- mallocCtx
   withForeignPtr ctxFP $ \ctx -> do
     initialize ctx
-    mapM_ (updateBytes ctx) (ByteString.Lazy.toChunks bytes)
+    mapM_ (update ctx) (ByteString.Lazy.toChunks bytes)
     onBufferOfMaxSize evpMaxMDSize (finalize ctx)
-  where
-    updateBytes ctx chunk =
-      -- The updater won't mutate its arguments, so the sharing inherent in
-      -- 'unsafeUseAsCUStringLen' is fine.
-      unsafeUseAsCUStringLen chunk $ \(buf, len) -> update ctx buf len
 
 -- | Allocates a buffer, runs a function 'f' to partially fill it, and packs the
 -- filled data into a 'ByteString'. 'f' must write the size of the filled data,

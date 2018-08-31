@@ -13,29 +13,25 @@
 -- the License.
 
 module BTLS.Buffer
-  ( unsafeUseAsCUStringLen
+  ( unsafeUseAsCBuffer
   , packCUStringLen
   ) where
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Unsafe as ByteString
-import Foreign (Ptr)
+import Foreign (Ptr, castPtr)
 import Foreign.C.Types
 import Unsafe.Coerce (unsafeCoerce)
 
-unsafeUseAsCUStringLen ::
-     Integral n => ByteString -> ((Ptr CUChar, n) -> IO a) -> IO a
-unsafeUseAsCUStringLen bs f =
+unsafeUseAsCBuffer :: ByteString -> ((Ptr a, CULong) -> IO b) -> IO b
+unsafeUseAsCBuffer bs f =
   ByteString.unsafeUseAsCStringLen bs $ \(pStr, len) ->
-    f (asCUCharBuf pStr, fromIntegral len)
+    f (castPtr pStr, fromIntegral len)
 
 packCUStringLen :: Integral n => (Ptr CUChar, n) -> IO ByteString
 packCUStringLen (pStr, len) =
   ByteString.packCStringLen (asCCharBuf pStr, fromIntegral len)
-
-asCUCharBuf :: Ptr CChar -> Ptr CUChar
-asCUCharBuf = unsafeCoerce
 
 asCCharBuf :: Ptr CUChar -> Ptr CChar
 asCCharBuf = unsafeCoerce

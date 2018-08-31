@@ -27,7 +27,6 @@ import BTLS.BoringSSL.Base
 import BTLS.BoringSSL.HMAC
 import BTLS.BoringSSL.Mem (cryptoMemcmp)
 import BTLS.BoringSSLPatterns (initUpdateFinalize)
-import BTLS.Buffer (unsafeUseAsCUStringLen)
 import BTLS.Types (Algorithm(Algorithm), Digest(Digest), SecretKey(SecretKey))
 
 type LazyByteString = ByteString.Lazy.ByteString
@@ -53,6 +52,4 @@ hmac (Algorithm md) (SecretKey key) =
     . unsafeLocalState
     . initUpdateFinalize mallocHMACCtx initialize hmacUpdate hmacFinal
   where
-    initialize ctx =
-      unsafeUseAsCUStringLen key $ \(keyBytes, keySize) ->
-        hmacInitEx ctx keyBytes keySize md noEngine
+    initialize ctx = hmacInitEx ctx key md noEngine
