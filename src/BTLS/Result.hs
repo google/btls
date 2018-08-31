@@ -12,14 +12,43 @@
 -- License for the specific language governing permissions and limitations under
 -- the License.
 
-module BTLS.Result where
+module BTLS.Result
+  ( alwaysSucceeds, requireSuccess
+  , Error, file, line, errorData, errorDataIsHumanReadable
+  ) where
 
 import Control.Exception (assert)
 import Control.Monad (when)
+import Data.Bits ((.&.))
+import Data.ByteString (ByteString)
+import Foreign (allocaArray)
+import Foreign.C.String (peekCString)
 import Foreign.C.Types
+import Foreign.Marshal.Unsafe (unsafeLocalState)
+
+import BTLS.BoringSSL.Err
 
 alwaysSucceeds :: CInt -> IO ()
 alwaysSucceeds r = assert (r == 1) (return ())
 
 requireSuccess :: CInt -> IO ()
 requireSuccess r = when (r /= 1) $ ioError (userError "BoringSSL failure")
+
+data Error = Error
+  { err :: Err
+  , file :: FilePath
+  , line :: Int
+  , errorData :: Maybe ByteString
+  , flags :: CInt
+  } deriving Eq
+
+errorDataIsHumanReadable :: Error -> Bool
+errorDataIsHumanReadable e = flags e .&. errFlagString == 1
+
+instance Show Error where
+  show e =
+    let len = 120 in
+    unsafeLocalState $
+      allocaArray len $ \pOut -> do
+        errErrorStringN (err e) pOut len
+        peekCString pOut
