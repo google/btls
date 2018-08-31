@@ -79,7 +79,6 @@ library
                      , BTLS.BoringSSL.Rand
                      , BTLS.BoringSSLPatterns
                      , BTLS.Buffer
-                     , BTLS.Cast
                      , BTLS.CreateWithFinalizer
                      , BTLS.Result
                      , BTLS.Types

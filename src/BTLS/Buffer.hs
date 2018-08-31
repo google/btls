@@ -22,7 +22,6 @@ import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Unsafe as ByteString
 import Foreign (Ptr, castPtr)
 import Foreign.C.Types
-import Unsafe.Coerce (unsafeCoerce)
 
 unsafeUseAsCBuffer :: ByteString -> ((Ptr a, CULong) -> IO b) -> IO b
 unsafeUseAsCBuffer bs f =
@@ -31,7 +30,4 @@ unsafeUseAsCBuffer bs f =
 
 packCUStringLen :: Integral n => (Ptr CUChar, n) -> IO ByteString
 packCUStringLen (pStr, len) =
-  ByteString.packCStringLen (asCCharBuf pStr, fromIntegral len)
-
-asCCharBuf :: Ptr CUChar -> Ptr CChar
-asCCharBuf = unsafeCoerce
+  ByteString.packCStringLen (castPtr pStr, fromIntegral len)

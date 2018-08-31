@@ -14,9 +14,7 @@
 
 module BTLS.BoringSSL.Mem where
 
-import Foreign (Ptr)
-
-import BTLS.Cast (asVoidPtr)
+import Foreign (Ptr, castPtr)
 
 #include <openssl/mem.h>
 
@@ -24,4 +22,4 @@ import BTLS.Cast (asVoidPtr)
 -- of time dependent on the specified size but independent of either buffer's
 -- contents.
 {#fun CRYPTO_memcmp as cryptoMemcmp
-  {asVoidPtr `Ptr a', asVoidPtr `Ptr a', `Int'} -> `Int'#}
+  {castPtr `Ptr a', castPtr `Ptr a', `Int'} -> `Int'#}
