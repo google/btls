@@ -47,5 +47,5 @@ expand (Algorithm md) (AssociatedData info) outLen (SecretKey secret) =
   SecretKey $
     unsafeLocalState $
       allocaArray outLen $ \pOutKey -> do
-        hkdfExpand pOutKey (fromIntegral outLen) md secret info
+        hkdfExpand pOutKey outLen md secret info
         packCUStringLen (pOutKey, outLen)

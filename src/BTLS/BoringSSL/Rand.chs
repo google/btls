@@ -24,4 +24,4 @@ import BTLS.Result
 #include <openssl/rand.h>
 
 {#fun RAND_bytes as randBytes
-  {id `Ptr CUChar', id `CULong'} -> `()' alwaysSucceeds*-#}
+  {id `Ptr CUChar', `Int'} -> `()' alwaysSucceeds*-#}

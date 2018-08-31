@@ -26,5 +26,5 @@ import BTLS.Buffer (packCUStringLen)
 randomBytes :: Int -> IO ByteString
 randomBytes len =
   allocaArray len $ \pBuf -> do
-    randBytes pBuf (fromIntegral len)
+    randBytes pBuf len
     packCUStringLen (pBuf, len)

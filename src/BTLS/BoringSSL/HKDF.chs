@@ -32,5 +32,5 @@ import BTLS.Result
   -> `()' requireSuccess*-#}
 
 {#fun HKDF_expand as hkdfExpand
-  { id `Ptr CUChar', id `CULong', `Ptr EVPMD', unsafeUseAsCBuffer* `ByteString'&
+  { id `Ptr CUChar', `Int', `Ptr EVPMD', unsafeUseAsCBuffer* `ByteString'&
   , unsafeUseAsCBuffer* `ByteString'& } -> `()' requireSuccess*-#}
