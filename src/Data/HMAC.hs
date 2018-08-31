@@ -41,7 +41,7 @@ instance Eq HMAC where
     unsafeLocalState $
       ByteString.unsafeUseAsCStringLen a $ \(a', size) ->
         ByteString.unsafeUseAsCStringLen b $ \(b', _) ->
-          cryptoMemcmp a' b' size
+          (==0) <$> cryptoMemcmp a' b' size
 
 instance Show HMAC where
   show (HMAC m) = show (Digest m)

@@ -36,18 +36,15 @@ mallocHMACCtx = createWithFinalizer {#call HMAC_CTX_init as ^#} hmacCtxCleanup
 foreign import ccall "&HMAC_CTX_cleanup"
   hmacCtxCleanup :: FinalizerPtr HMACCtx
 
-hmacInitEx :: Ptr HMACCtx -> Ptr a -> CULong -> Ptr EVPMD -> Ptr Engine -> IO ()
-hmacInitEx ctx bytes size md engine =
-  requireSuccess $
-    {#call HMAC_Init_ex as ^#} ctx (asVoidPtr bytes) size md engine
+{#fun HMAC_Init_ex as hmacInitEx
+  {`Ptr HMACCtx', asVoidPtr `Ptr a', id `CULong', `Ptr EVPMD', `Ptr Engine'}
+  -> `()' requireSuccess*-#}
 
-hmacUpdate :: Ptr HMACCtx -> Ptr CUChar -> CULong -> IO ()
-hmacUpdate ctx bytes size =
-  alwaysSucceeds $ {#call HMAC_Update as ^#} ctx bytes size
+{#fun HMAC_Update as hmacUpdate
+  {`Ptr HMACCtx', id `Ptr CUChar', id `CULong'} -> `()' alwaysSucceeds*-#}
 
-hmacFinal :: Ptr HMACCtx -> Ptr CUChar -> Ptr CUInt -> IO ()
-hmacFinal ctx out outSize =
-  requireSuccess $ {#call HMAC_Final as ^#} ctx out outSize
+{#fun HMAC_Final as hmacFinal
+  {`Ptr HMACCtx', id `Ptr CUChar', id `Ptr CUInt'} -> `()' requireSuccess*-#}
 
 instance Storable HMACCtx where
   sizeOf _ = {#sizeof HMAC_CTX#}

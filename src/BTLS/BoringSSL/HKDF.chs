@@ -24,22 +24,10 @@ import BTLS.Result
 
 #include <openssl/hkdf.h>
 
-hkdfExtract ::
-  Ptr CUChar -> Ptr CULong
-  -> Ptr EVPMD
-  -> Ptr CUChar -> CULong
-  -> Ptr CUChar -> CULong
-  -> IO ()
-hkdfExtract outKey outLen digest secret secretLen salt saltLen =
-  requireSuccess $
-    {#call HKDF_extract as ^#} outKey outLen digest secret secretLen salt saltLen
+{#fun HKDF_extract as hkdfExtract
+  { id `Ptr CUChar', id `Ptr CULong', `Ptr EVPMD', id `Ptr CUChar', id `CULong'
+  , id `Ptr CUChar', id `CULong' } -> `()' requireSuccess*-#}
 
-hkdfExpand ::
-  Ptr CUChar -> CULong
-  -> Ptr EVPMD
-  -> Ptr CUChar -> CULong
-  -> Ptr CUChar -> CULong
-  -> IO ()
-hkdfExpand outKey outLen digest prk prkLen info infoLen =
-  requireSuccess $
-    {#call HKDF_expand as ^#} outKey outLen digest prk prkLen info infoLen
+{#fun HKDF_expand as hkdfExpand
+  { id `Ptr CUChar', id `CULong', `Ptr EVPMD', id `Ptr CUChar', id `CULong'
+  , id `Ptr CUChar', id `CULong' } -> `()' requireSuccess*-#}

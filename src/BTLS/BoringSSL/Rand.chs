@@ -23,5 +23,5 @@ import BTLS.Result
 
 #include <openssl/rand.h>
 
-randBytes :: Ptr CUChar -> CULong -> IO ()
-randBytes buf len = alwaysSucceeds $ {#call RAND_bytes as ^#} buf len
+{#fun RAND_bytes as randBytes
+  {id `Ptr CUChar', id `CULong'} -> `()' alwaysSucceeds*-#}

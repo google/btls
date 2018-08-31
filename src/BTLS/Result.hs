@@ -15,13 +15,11 @@
 module BTLS.Result where
 
 import Control.Exception (assert)
-import Foreign (throwIf_)
+import Control.Monad (when)
 import Foreign.C.Types
 
-alwaysSucceeds :: IO CInt -> IO ()
-alwaysSucceeds f = do
-  r <- f
-  assert (r == 1) (return ())
+alwaysSucceeds :: CInt -> IO ()
+alwaysSucceeds r = assert (r == 1) (return ())
 
-requireSuccess :: IO CInt -> IO ()
-requireSuccess f = throwIf_ (/= 1) (const "BoringSSL failure") f
+requireSuccess :: CInt -> IO ()
+requireSuccess r = when (r /= 1) $ ioError (userError "BoringSSL failure")
