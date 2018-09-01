@@ -14,19 +14,24 @@
 
 module Data.HMAC
   ( SecretKey(SecretKey)
-  , HMAC
+  , HMAC, Result
   , hmac
   ) where
 
+import Control.Monad.Trans.Class (lift)
+import Control.Monad.Trans.Except (runExceptT)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as ByteString.Lazy
 import qualified Data.ByteString.Unsafe as ByteString
+import Foreign (withForeignPtr)
 import Foreign.Marshal.Unsafe (unsafeLocalState)
 
 import BTLS.BoringSSL.Base
+import BTLS.BoringSSL.Digest (evpMaxMDSize)
 import BTLS.BoringSSL.HMAC
 import BTLS.BoringSSL.Mem (cryptoMemcmp)
-import BTLS.BoringSSLPatterns (initUpdateFinalize)
+import BTLS.BoringSSLPatterns (onBufferOfMaxSize)
+import BTLS.Result (Result, check)
 import BTLS.Types (Algorithm(Algorithm), Digest(Digest), SecretKey(SecretKey))
 
 type LazyByteString = ByteString.Lazy.ByteString
@@ -46,10 +51,11 @@ instance Show HMAC where
   show (HMAC m) = show (Digest m)
 
 -- | Creates an HMAC according to the given 'Algorithm'.
-hmac :: Algorithm -> SecretKey -> LazyByteString -> HMAC
-hmac (Algorithm md) (SecretKey key) =
-  HMAC
-    . unsafeLocalState
-    . initUpdateFinalize mallocHMACCtx initialize hmacUpdate hmacFinal
-  where
-    initialize ctx = hmacInitEx ctx key md noEngine
+hmac :: Algorithm -> SecretKey -> LazyByteString -> Result HMAC
+hmac (Algorithm md) (SecretKey key) bytes =
+  unsafeLocalState $ do
+    ctxFP <- mallocHMACCtx
+    withForeignPtr ctxFP $ \ctx -> runExceptT $ do
+      check $ hmacInitEx ctx key md noEngine
+      lift $ mapM_ (hmacUpdate ctx) (ByteString.Lazy.toChunks bytes)
+      lift $ HMAC <$> onBufferOfMaxSize evpMaxMDSize (hmacFinal ctx)

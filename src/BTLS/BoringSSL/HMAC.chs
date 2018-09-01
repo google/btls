@@ -39,7 +39,7 @@ foreign import ccall "&HMAC_CTX_cleanup"
 
 {#fun HMAC_Init_ex as hmacInitEx
   {`Ptr HMACCtx', unsafeUseAsCBuffer* `ByteString'&, `Ptr EVPMD', `Ptr Engine'}
-  -> `()' requireSuccess*-#}
+  -> `Int'#}
 
 {#fun HMAC_Update as hmacUpdate
   {`Ptr HMACCtx', unsafeUseAsCBuffer* `ByteString'&} -> `()' alwaysSucceeds*-#}

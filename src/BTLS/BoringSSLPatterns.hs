@@ -13,43 +13,14 @@
 -- the License.
 
 module BTLS.BoringSSLPatterns
-  ( initUpdateFinalize
-  , onBufferOfMaxSize
+  ( onBufferOfMaxSize
   ) where
 
 import Data.ByteString (ByteString)
-import qualified Data.ByteString.Lazy as ByteString.Lazy
-import Foreign (ForeignPtr, Storable(peek), Ptr, alloca, allocaArray, withForeignPtr)
+import Foreign (Storable(peek), Ptr, alloca, allocaArray)
 import Foreign.C.Types
 
-import BTLS.BoringSSL.Digest (evpMaxMDSize)
 import BTLS.Buffer (packCUStringLen)
-
-type LazyByteString = ByteString.Lazy.ByteString
-
--- | Encapsulates a common pattern of operation between hashing and HMAC
--- computation. Both of these operations require an allocated context local to
--- the operation. The context gets initialized once, updated repeatedly, and
--- then finalized. Finally, we read the result out of a buffer produced by the
--- finalizer.
---
--- The updater must not mutate any argument other than the context.
---
--- If all arguments are safe to use under 'unsafeLocalState', this whole
--- function is safe to use under 'unsafeLocalState'.
-initUpdateFinalize ::
-     IO (ForeignPtr ctx)
-  -> (Ptr ctx -> IO ())
-  -> (Ptr ctx -> ByteString -> IO ())
-  -> (Ptr ctx -> Ptr CUChar -> Ptr CUInt -> IO ())
-  -> LazyByteString
-  -> IO ByteString
-initUpdateFinalize mallocCtx initialize update finalize bytes = do
-  ctxFP <- mallocCtx
-  withForeignPtr ctxFP $ \ctx -> do
-    initialize ctx
-    mapM_ (update ctx) (ByteString.Lazy.toChunks bytes)
-    onBufferOfMaxSize evpMaxMDSize (finalize ctx)
 
 -- | Allocates a buffer, runs a function 'f' to partially fill it, and packs the
 -- filled data into a 'ByteString'. 'f' must write the size of the filled data,

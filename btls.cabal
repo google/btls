@@ -90,6 +90,8 @@ library
   extra-libraries:     btls_crypto
   build-depends:       base >=4.9 && <4.10
                      , bytestring >=0.10 && <0.11
+                     , monad-loops >=0.4.3 && <0.5
+                     , transformers >=0.5.2 && <0.6
 
 test-suite tests
   type:                exitcode-stdio-1.0
@@ -121,6 +123,7 @@ test-suite tests
                        -Wunused-matches
                        -Wunused-type-variables
                        -Wwrong-do-bind
+                       -threaded
                        -optl-Wl,-z,relro -optl-Wl,-z,now -optl-Wl,-s
   main-is:             Tests.hs
   other-modules:       Codec.Crypto.HKDFTests

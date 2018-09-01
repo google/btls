@@ -14,11 +14,15 @@
 
 module BTLS.Result
   ( alwaysSucceeds, requireSuccess
-  , Error, file, line, errorData, errorDataIsHumanReadable
+  , Result, Error, file, line, errorData, errorDataIsHumanReadable
+  , check
   ) where
 
+import Control.Concurrent (rtsSupportsBoundThreads, runInBoundThread)
 import Control.Exception (assert)
-import Control.Monad (when)
+import Control.Monad (guard, unless, when)
+import Control.Monad.Loops (unfoldM)
+import Control.Monad.Trans.Except (ExceptT(ExceptT))
 import Data.Bits ((.&.))
 import Data.ByteString (ByteString)
 import Foreign (allocaArray)
@@ -33,6 +37,8 @@ alwaysSucceeds r = assert (r == 1) (return ())
 
 requireSuccess :: CInt -> IO ()
 requireSuccess r = when (r /= 1) $ ioError (userError "BoringSSL failure")
+
+type Result = Either [Error]
 
 data Error = Error
   { err :: Err
@@ -52,3 +58,26 @@ instance Show Error where
       allocaArray len $ \pOut -> do
         errErrorStringN (err e) pOut len
         peekCString pOut
+
+errorFromTuple :: (Err, FilePath, Int, Maybe ByteString, CInt) -> Error
+errorFromTuple = uncurry5 Error
+
+dequeueError :: IO (Maybe Error)
+dequeueError = do
+  e@((Err code), _file, _line, _extra, _flags) <- errGetErrorLineData
+  guard (code /= 0)
+  return (Just (errorFromTuple e))
+
+check :: IO Int -> ExceptT [Error] IO ()
+check f = do
+  unless rtsSupportsBoundThreads $
+    error "btls requires the threaded runtime. Please recompile with -threaded."
+  ExceptT $ runInBoundThread $ do
+    -- TODO(bbaren): Assert that the error queue is clear
+    r <- f
+    if r == 1
+      then Right <$> return ()
+      else Left <$> unfoldM dequeueError
+
+uncurry5 :: (a -> b -> c -> d -> e -> z) -> (a, b, c, d, e) -> z
+uncurry5 f (a, b, c, d, e) = f a b c d e

@@ -30,7 +30,7 @@ btls needs GHC, c2hs and a few Haskell libraries to build. On Debian,
 
 should get you everything you need; you can also run
 
-    apt install libghc-{base16-bytestring,smallcheck,tasty,tasty-hunit,tasty-smallcheck}-dev
+    apt install libghc-{base16-bytestring,monad-loops,smallcheck,tasty,tasty-hunit,tasty-smallcheck}-dev
 
 if you want to install everything you can through APT instead of Cabal. Once
 you’ve done so, you can build and run the test suite.

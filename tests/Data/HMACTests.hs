@@ -23,7 +23,7 @@ import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit ((@?=), testCase)
 
 import Data.Digest (md5, sha1, sha224, sha256, sha384, sha512)
-import Data.HMAC (SecretKey(SecretKey), hmac)
+import Data.HMAC (Result, SecretKey(SecretKey), hmac)
 
 type LazyByteString = ByteString.Lazy.ByteString
 
@@ -35,11 +35,11 @@ tests = testGroup "Data.HMAC"
   ]
 
 tableTestCase ::
-     (SecretKey -> LazyByteString -> String)
+     (SecretKey -> LazyByteString -> Result String)
   -> (SecretKey, LazyByteString, String)
   -> TestTree
 tableTestCase f (key, input, output) =
-  testCase (abbreviate input) (f key input @?= output)
+  testCase (abbreviate input) (f key input @?= Right output)
 
 abbreviate :: LazyByteString -> String
 abbreviate input =
@@ -119,16 +119,16 @@ truncatedFips198Test =
       output = "9ea886efe268dbecce420c75" :: String
   in testCase
        (show input)
-       (take 24 (hmacSha1 key (ByteString.Lazy.Char8.pack input)) @?= output)
+       (take 24 <$> hmacSha1 key (ByteString.Lazy.Char8.pack input) @?= Right output)
 
 rfc4231TestCase ::
      (SecretKey, LazyByteString, String, String, String, String) -> TestTree
 rfc4231TestCase (key, input, sha224Output, sha256Output, sha384Output, sha512Output) =
   testGroup (abbreviate input)
-    [ testCase "SHA-224" (hmacSha224 key input @?= sha224Output)
-    , testCase "SHA-256" (hmacSha256 key input @?= sha256Output)
-    , testCase "SHA-384" (hmacSha384 key input @?= sha384Output)
-    , testCase "SHA-512" (hmacSha512 key input @?= sha512Output)
+    [ testCase "SHA-224" (hmacSha224 key input @?= Right sha224Output)
+    , testCase "SHA-256" (hmacSha256 key input @?= Right sha256Output)
+    , testCase "SHA-384" (hmacSha384 key input @?= Right sha384Output)
+    , testCase "SHA-512" (hmacSha512 key input @?= Right sha512Output)
     ]
 
 -- | Tests from RFC 4231.
@@ -176,17 +176,17 @@ testRFC4231 = testGroup "RFC 4231" $
 truncatedRFC4231Test =
   let key = SecretKey (ByteString.replicate 20 0x0c)
       input = "Test With Truncation" :: LazyByteString
-      t f = take 32 (f key input) :: String
+      t f = take 32 <$> f key input :: Result String
   in testGroup (abbreviate input)
-       [ testCase "SHA-224" (t hmacSha224 @?= "0e2aea68a90c8d37c988bcdb9fca6fa8")
-       , testCase "SHA-256" (t hmacSha256 @?= "a3b6167473100ee06e0c796c2955552b")
-       , testCase "SHA-384" (t hmacSha384 @?= "3abf34c3503b2a23a46efc619baef897")
-       , testCase "SHA-512" (t hmacSha512 @?= "415fad6271580a531d4179bc891d87a6")
+       [ testCase "SHA-224" (t hmacSha224 @?= Right "0e2aea68a90c8d37c988bcdb9fca6fa8")
+       , testCase "SHA-256" (t hmacSha256 @?= Right "a3b6167473100ee06e0c796c2955552b")
+       , testCase "SHA-384" (t hmacSha384 @?= Right "3abf34c3503b2a23a46efc619baef897")
+       , testCase "SHA-512" (t hmacSha512 @?= Right "415fad6271580a531d4179bc891d87a6")
        ]
 
-hmacMd5    key bytes = show $ hmac md5 key bytes
-hmacSha1   key bytes = show $ hmac sha1 key bytes
-hmacSha224 key bytes = show $ hmac sha224 key bytes
-hmacSha256 key bytes = show $ hmac sha256 key bytes
-hmacSha384 key bytes = show $ hmac sha384 key bytes
-hmacSha512 key bytes = show $ hmac sha512 key bytes
+hmacMd5    key bytes = show <$> hmac md5 key bytes
+hmacSha1   key bytes = show <$> hmac sha1 key bytes
+hmacSha224 key bytes = show <$> hmac sha224 key bytes
+hmacSha256 key bytes = show <$> hmac sha256 key bytes
+hmacSha384 key bytes = show <$> hmac sha384 key bytes
+hmacSha512 key bytes = show <$> hmac sha512 key bytes
