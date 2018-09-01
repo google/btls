@@ -30,7 +30,7 @@ import BTLS.BoringSSL.Base
 import BTLS.BoringSSL.Digest (evpMaxMDSize)
 import BTLS.BoringSSL.HMAC
 import BTLS.BoringSSL.Mem (cryptoMemcmp)
-import BTLS.BoringSSLPatterns (onBufferOfMaxSize)
+import BTLS.Buffer (onBufferOfMaxSize)
 import BTLS.Result (Result, check)
 import BTLS.Types (Algorithm(Algorithm), Digest(Digest), SecretKey(SecretKey))
 

@@ -22,8 +22,7 @@ import Foreign.Marshal.Unsafe (unsafeLocalState)
 
 import BTLS.BoringSSL.Digest (evpMaxMDSize)
 import BTLS.BoringSSL.HKDF
-import BTLS.BoringSSLPatterns (onBufferOfMaxSize)
-import BTLS.Buffer (packCUStringLen)
+import BTLS.Buffer (onBufferOfMaxSize, packCUStringLen)
 import BTLS.Types
   ( Algorithm(Algorithm), AssociatedData(AssociatedData), Salt(Salt)
   , SecretKey(SecretKey), noSalt

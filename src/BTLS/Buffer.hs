@@ -15,12 +15,13 @@
 module BTLS.Buffer
   ( unsafeUseAsCBuffer
   , packCUStringLen
+  , onBufferOfMaxSize
   ) where
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Unsafe as ByteString
-import Foreign (Ptr, castPtr)
+import Foreign (Storable(peek), Ptr, alloca, allocaArray, castPtr)
 import Foreign.C.Types
 
 unsafeUseAsCBuffer :: ByteString -> ((Ptr a, CULong) -> IO b) -> IO b
@@ -31,3 +32,21 @@ unsafeUseAsCBuffer bs f =
 packCUStringLen :: Integral n => (Ptr CUChar, n) -> IO ByteString
 packCUStringLen (pStr, len) =
   ByteString.packCStringLen (castPtr pStr, fromIntegral len)
+
+-- | Allocates a buffer, runs a function 'f' to partially fill it, and packs the
+-- filled data into a 'ByteString'. 'f' must write the size of the filled data,
+-- in bytes and not including any trailing null, into its second argument.
+--
+-- If 'f' is safe to use under 'unsafeLocalState', this whole function is safe
+-- to use under 'unsafeLocalState'.
+onBufferOfMaxSize ::
+     (Integral size, Storable size)
+  => Int
+  -> (Ptr CUChar -> Ptr size -> IO ())
+  -> IO ByteString
+onBufferOfMaxSize maxSize f =
+  allocaArray maxSize $ \pOut ->
+    alloca $ \pOutLen -> do
+      f pOut pOutLen
+      outLen <- peek pOutLen
+      packCUStringLen (pOut, outLen)
