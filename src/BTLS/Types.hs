@@ -31,7 +31,10 @@ newtype Algorithm = Algorithm (Ptr EVPMD)
 newtype AssociatedData = AssociatedData ByteString
   deriving (Eq, Ord, Show)
 
--- | The result of a hash operation.
+-- | The result of a hash operation. Equality comparisons on this type are
+-- variable-time.
+--
+-- The 'Show' instance for this type displays the digest as a hexadecimal string.
 newtype Digest = Digest ByteString
   deriving (Eq, Ord)
 
@@ -46,6 +49,7 @@ instance Show Digest where
 newtype Salt = Salt ByteString
   deriving (Eq, Ord, Show)
 
+-- | A special value used to request that no salt be used.
 noSalt :: Salt
 noSalt = Salt ByteString.empty
 

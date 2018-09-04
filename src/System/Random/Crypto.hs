@@ -12,6 +12,12 @@
 -- License for the specific language governing permissions and limitations under
 -- the License.
 
+{-|
+  Module: System.Random.Crypto
+  Description: Cryptographically secure pseudorandom number generator
+  Copyright: 2018 Google LLC
+  License: Apache License, version 2.0
+-}
 module System.Random.Crypto
   ( randomBytes
   ) where
@@ -22,7 +28,8 @@ import Foreign (allocaArray)
 import BTLS.BoringSSL.Rand (randBytes)
 import BTLS.Buffer (packCUStringLen)
 
--- | Generates a cryptographically random buffer of the specified size.
+-- | Generates a cryptographically random buffer of the specified size (in
+-- bytes).
 randomBytes :: Int -> IO ByteString
 randomBytes len =
   allocaArray len $ \pBuf -> do

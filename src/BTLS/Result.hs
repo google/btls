@@ -40,6 +40,7 @@ requireSuccess r = when (r /= 1) $ ioError (userError "BoringSSL failure")
 
 type Result = Either [Error]
 
+-- | An error which occurred during processing.
 data Error = Error
   { err :: Err
   , file :: FilePath

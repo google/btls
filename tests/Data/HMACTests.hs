@@ -23,7 +23,7 @@ import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit ((@?=), testCase)
 
 import Data.Digest (md5, sha1, sha224, sha256, sha384, sha512)
-import Data.HMAC (Result, SecretKey(SecretKey), hmac)
+import Data.HMAC (Error, SecretKey(SecretKey), hmac)
 
 type LazyByteString = ByteString.Lazy.ByteString
 
@@ -35,7 +35,7 @@ tests = testGroup "Data.HMAC"
   ]
 
 tableTestCase ::
-     (SecretKey -> LazyByteString -> Result String)
+     (SecretKey -> LazyByteString -> Either [Error] String)
   -> (SecretKey, LazyByteString, String)
   -> TestTree
 tableTestCase f (key, input, output) =
@@ -176,7 +176,7 @@ testRFC4231 = testGroup "RFC 4231" $
 truncatedRFC4231Test =
   let key = SecretKey (ByteString.replicate 20 0x0c)
       input = "Test With Truncation" :: LazyByteString
-      t f = take 32 <$> f key input :: Result String
+      t f = take 32 <$> f key input :: Either [Error] String
   in testGroup (abbreviate input)
        [ testCase "SHA-224" (t hmacSha224 @?= Right "0e2aea68a90c8d37c988bcdb9fca6fa8")
        , testCase "SHA-256" (t hmacSha256 @?= Right "a3b6167473100ee06e0c796c2955552b")
