@@ -22,7 +22,8 @@ module BTLS.BoringSSL.Digest
   ) where
 
 import Data.ByteString (ByteString)
-import Foreign (FinalizerPtr, ForeignPtr, Ptr, Storable(alignment, sizeOf))
+import Foreign
+  (FinalizerPtr, ForeignPtr, Ptr, Storable(alignment, sizeOf), withForeignPtr)
 import Foreign.C.Types
 
 {#import BTLS.BoringSSL.Base#}
@@ -48,13 +49,16 @@ foreign import ccall "&btlsFinalizeEVPMDCtx"
   btlsFinalizeEVPMDCtxPtr :: FinalizerPtr EVPMDCtx
 
 {#fun EVP_DigestInit_ex as evpDigestInitEx
-  {`Ptr EVPMDCtx', `Ptr EVPMD', `Ptr Engine'} -> `()' requireSuccess*-#}
+  {withForeignPtr* `ForeignPtr EVPMDCtx', `Ptr EVPMD', `Ptr Engine'}
+  -> `()' requireSuccess*-#}
 
 {#fun EVP_DigestUpdate as evpDigestUpdate
-  {`Ptr EVPMDCtx', unsafeUseAsCBuffer* `ByteString'&} -> `()' alwaysSucceeds*-#}
+  {withForeignPtr* `ForeignPtr EVPMDCtx', unsafeUseAsCBuffer* `ByteString'&}
+  -> `()' alwaysSucceeds*-#}
 
 {#fun EVP_DigestFinal_ex as evpDigestFinalEx
-  {`Ptr EVPMDCtx', id `Ptr CUChar', id `Ptr CUInt'} -> `()' alwaysSucceeds*-#}
+  {withForeignPtr* `ForeignPtr EVPMDCtx', id `Ptr CUChar', id `Ptr CUInt'}
+  -> `()' alwaysSucceeds*-#}
 
 evpMaxMDSize :: Int
 evpMaxMDSize = {#const EVP_MAX_MD_SIZE#}

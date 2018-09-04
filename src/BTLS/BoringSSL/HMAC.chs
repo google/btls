@@ -20,7 +20,8 @@ module BTLS.BoringSSL.HMAC
   ) where
 
 import Data.ByteString (ByteString)
-import Foreign (FinalizerPtr, ForeignPtr, Ptr, Storable(alignment, sizeOf))
+import Foreign
+  (FinalizerPtr, ForeignPtr, Ptr, Storable(alignment, sizeOf), withForeignPtr)
 import Foreign.C.Types
 
 {#import BTLS.BoringSSL.Base#}
@@ -38,14 +39,22 @@ foreign import ccall "&HMAC_CTX_cleanup"
   hmacCtxCleanup :: FinalizerPtr HMACCtx
 
 {#fun HMAC_Init_ex as hmacInitEx
-  {`Ptr HMACCtx', unsafeUseAsCBuffer* `ByteString'&, `Ptr EVPMD', `Ptr Engine'}
+  { withForeignPtr* `ForeignPtr HMACCtx'
+  , unsafeUseAsCBuffer* `ByteString'&
+  , `Ptr EVPMD'
+  , `Ptr Engine' }
   -> `Int'#}
 
 {#fun HMAC_Update as hmacUpdate
-  {`Ptr HMACCtx', unsafeUseAsCBuffer* `ByteString'&} -> `()' alwaysSucceeds*-#}
+  { withForeignPtr* `ForeignPtr HMACCtx'
+  , unsafeUseAsCBuffer* `ByteString'& }
+  -> `()' alwaysSucceeds*-#}
 
 {#fun HMAC_Final as hmacFinal
-  {`Ptr HMACCtx', id `Ptr CUChar', id `Ptr CUInt'} -> `()' requireSuccess*-#}
+  { withForeignPtr* `ForeignPtr HMACCtx'
+  , id `Ptr CUChar'
+  , id `Ptr CUInt' }
+  -> `()' requireSuccess*-#}
 
 instance Storable HMACCtx where
   sizeOf _ = {#sizeof HMAC_CTX#}

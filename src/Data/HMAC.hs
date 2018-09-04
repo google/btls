@@ -51,7 +51,6 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as Lazy (ByteString)
 import qualified Data.ByteString.Lazy as ByteString.Lazy
 import qualified Data.ByteString.Unsafe as ByteString
-import Foreign (withForeignPtr)
 import Foreign.Marshal.Unsafe (unsafeLocalState)
 
 import BTLS.BoringSSL.Base
@@ -80,9 +79,8 @@ instance Show HMAC where
 -- | Creates an HMAC according to the given 'Algorithm'.
 hmac :: Algorithm -> SecretKey -> Lazy.ByteString -> Either [Error] HMAC
 hmac (Algorithm md) (SecretKey key) bytes =
-  unsafeLocalState $ do
-    ctxFP <- mallocHMACCtx
-    withForeignPtr ctxFP $ \ctx -> runExceptT $ do
-      check $ hmacInitEx ctx key md noEngine
-      lift $ mapM_ (hmacUpdate ctx) (ByteString.Lazy.toChunks bytes)
-      lift $ HMAC <$> onBufferOfMaxSize evpMaxMDSize (hmacFinal ctx)
+  unsafeLocalState $ runExceptT $ do
+    ctx <- lift mallocHMACCtx
+    check $ hmacInitEx ctx key md noEngine
+    lift $ mapM_ (hmacUpdate ctx) (ByteString.Lazy.toChunks bytes)
+    lift $ HMAC <$> onBufferOfMaxSize evpMaxMDSize (hmacFinal ctx)

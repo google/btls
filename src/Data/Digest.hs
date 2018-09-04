@@ -40,7 +40,6 @@ module Data.Digest
 
 import qualified Data.ByteString.Lazy as Lazy (ByteString)
 import qualified Data.ByteString.Lazy as ByteString.Lazy
-import Foreign (withForeignPtr)
 import Foreign.Marshal.Unsafe (unsafeLocalState)
 
 import BTLS.BoringSSL.Base
@@ -88,8 +87,7 @@ sha512 = Algorithm evpSHA512
 hash :: Algorithm -> Lazy.ByteString -> Digest
 hash (Algorithm md) bytes =
   unsafeLocalState $ do
-    ctxFP <- mallocEVPMDCtx
-    withForeignPtr ctxFP $ \ctx -> do
-      evpDigestInitEx ctx md noEngine
-      mapM_ (evpDigestUpdate ctx) (ByteString.Lazy.toChunks bytes)
-      Digest <$> onBufferOfMaxSize evpMaxMDSize (evpDigestFinalEx ctx)
+    ctx <- mallocEVPMDCtx
+    evpDigestInitEx ctx md noEngine
+    mapM_ (evpDigestUpdate ctx) (ByteString.Lazy.toChunks bytes)
+    Digest <$> onBufferOfMaxSize evpMaxMDSize (evpDigestFinalEx ctx)
