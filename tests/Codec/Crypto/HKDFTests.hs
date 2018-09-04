@@ -21,8 +21,9 @@ import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Base16 as ByteString.Base16
 import qualified Data.ByteString.Char8 as ByteString.Char8
 import Test.Tasty (TestTree, testGroup)
-import Test.Tasty.HUnit ((@?=), testCase)
+import Test.Tasty.HUnit (testCase)
 
+import BTLS.Assertions (isRightAndHolds)
 import Codec.Crypto.HKDF (AssociatedData(AssociatedData), Salt(Salt), SecretKey(SecretKey), noSalt)
 import qualified Codec.Crypto.HKDF as HKDF
 import Data.Digest (sha1, sha256)
@@ -91,10 +92,11 @@ testRFC5869 = testGroup "RFC 5869 examples"
   ]
   where
     t name hash ikm salt info len prk okm =
-      testGroup name [ testCase "hkdf" $ HKDF.hkdf hash salt info len ikm @?= okm
-                     , testCase "extract" $ HKDF.extract hash salt ikm @?= prk
-                     , testCase "expand" $ HKDF.expand hash info len prk @?= okm
-                     ]
+      testGroup name
+        [ testCase "hkdf" $ HKDF.hkdf hash salt info len ikm `isRightAndHolds` okm
+        , testCase "extract" $ HKDF.extract hash salt ikm `isRightAndHolds` prk
+        , testCase "expand" $ HKDF.expand hash info len prk `isRightAndHolds` okm
+        ]
 
 hex :: ByteString -> ByteString
 hex s =

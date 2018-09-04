@@ -12,24 +12,16 @@
 -- License for the specific language governing permissions and limitations under
 -- the License.
 
-module BTLS.BoringSSL.HKDF
-  ( hkdfExtract, hkdfExpand
+module BTLS.Assertions
+  ( isRightAndHolds
   ) where
 
-import Data.ByteString (ByteString)
-import Foreign (Ptr)
-import Foreign.C.Types
+import Control.Monad (unless)
+import Test.Tasty.HUnit (Assertion, assertFailure)
 
-{#import BTLS.BoringSSL.Base#}
-import BTLS.Buffer (unsafeUseAsCBuffer)
-
-#include <openssl/hkdf.h>
-
-{#fun HKDF_extract as hkdfExtract
-  { id `Ptr CUChar', id `Ptr CULong', `Ptr EVPMD'
-  , unsafeUseAsCBuffer* `ByteString'&, unsafeUseAsCBuffer* `ByteString'& }
-  -> `Int'#}
-
-{#fun HKDF_expand as hkdfExpand
-  { id `Ptr CUChar', `Int', `Ptr EVPMD', unsafeUseAsCBuffer* `ByteString'&
-  , unsafeUseAsCBuffer* `ByteString'& } -> `Int'#}
+isRightAndHolds :: (Eq a, Show a, Show e) => Either e a -> a -> Assertion
+actual@(Left _) `isRightAndHolds` _ =
+  assertFailure ("expected: Right _\n but got: " ++ show actual)
+Right actual `isRightAndHolds` expected =
+  unless (expected == actual) $
+    assertFailure ("expected: Right " ++ show expected ++ "\n but got: Right " ++ show actual)

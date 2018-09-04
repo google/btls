@@ -16,13 +16,13 @@
 
 module Data.HMACTests (tests) where
 
-import Control.Monad (unless)
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Lazy as ByteString.Lazy
 import qualified Data.ByteString.Lazy.Char8 as ByteString.Lazy.Char8
 import Test.Tasty (TestTree, testGroup)
-import Test.Tasty.HUnit (Assertion, assertFailure, testCase)
+import Test.Tasty.HUnit (testCase)
 
+import BTLS.Assertions (isRightAndHolds)
 import Data.Digest (md5, sha1, sha224, sha256, sha384, sha512)
 import Data.HMAC (Error, SecretKey(SecretKey), hmac)
 
@@ -191,10 +191,3 @@ hmacSha224 key bytes = show <$> hmac sha224 key bytes
 hmacSha256 key bytes = show <$> hmac sha256 key bytes
 hmacSha384 key bytes = show <$> hmac sha384 key bytes
 hmacSha512 key bytes = show <$> hmac sha512 key bytes
-
-isRightAndHolds :: (Eq a, Show a, Show e) => Either e a -> a -> Assertion
-actual@(Left _) `isRightAndHolds` _ =
-  assertFailure ("expected: Right _\n but got: " ++ show actual)
-Right actual `isRightAndHolds` expected =
-  unless (expected == actual) $
-    assertFailure ("expected: Right " ++ show expected ++ "\n but got: Right " ++ show actual)

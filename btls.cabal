@@ -125,7 +125,8 @@ test-suite tests
                        -threaded
                        -optl-Wl,-z,relro -optl-Wl,-z,now -optl-Wl,-s
   main-is:             Tests.hs
-  other-modules:       Codec.Crypto.HKDFTests
+  other-modules:       BTLS.Assertions
+                     , Codec.Crypto.HKDFTests
                      , Data.DigestTests
                      , Data.Digest.HashTests
                      , Data.Digest.MD5Tests

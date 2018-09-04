@@ -15,9 +15,11 @@
 module BTLS.Buffer
   ( unsafeUseAsCBuffer
   , packCUStringLen
-  , onBufferOfMaxSize
+  , onBufferOfMaxSize, onBufferOfMaxSize'
   ) where
 
+import Control.Monad.Trans.Class (lift)
+import Control.Monad.Trans.Except (ExceptT, runExceptT)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Unsafe as ByteString
@@ -44,9 +46,22 @@ onBufferOfMaxSize ::
   => Int
   -> (Ptr CUChar -> Ptr size -> IO ())
   -> IO ByteString
-onBufferOfMaxSize maxSize f =
+onBufferOfMaxSize maxSize f = do
+  Right r <- onBufferOfMaxSize' maxSize (compose2 lift f)
+  return r
+
+-- | Like 'onBufferOfMaxSize' but may fail.
+onBufferOfMaxSize' ::
+     (Integral size, Storable size)
+  => Int
+  -> (Ptr CUChar -> Ptr size -> ExceptT e IO ())
+  -> IO (Either e ByteString)
+onBufferOfMaxSize' maxSize f =
   allocaArray maxSize $ \pOut ->
-    alloca $ \pOutLen -> do
+    alloca $ \pOutLen -> runExceptT $ do
       f pOut pOutLen
-      outLen <- peek pOutLen
-      packCUStringLen (pOut, outLen)
+      outLen <- lift $ peek pOutLen
+      lift $ packCUStringLen (pOut, outLen)
+
+compose2 :: (r -> r') -> (a -> b -> r) -> a -> b -> r'
+compose2 f g = \a b -> f (g a b)
