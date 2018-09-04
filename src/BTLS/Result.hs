@@ -47,7 +47,7 @@ data Error = Error
   , line :: Int
   , errorData :: Maybe ByteString
   , flags :: CInt
-  } deriving Eq
+  }
 
 errorDataIsHumanReadable :: Error -> Bool
 errorDataIsHumanReadable e = flags e .&. errFlagString == 1
