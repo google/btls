@@ -59,7 +59,7 @@ import BTLS.BoringSSL.HMAC
 import BTLS.BoringSSL.Mem (cryptoMemcmp)
 import BTLS.Buffer (onBufferOfMaxSize)
 import BTLS.Result (Error, check)
-import BTLS.Types (Algorithm(Algorithm), Digest(Digest), SecretKey(SecretKey))
+import BTLS.Types (Algorithm(Algorithm), SecretKey(SecretKey), showHex)
 import Data.Digest (md5, sha1, sha224, sha256, sha384, sha512)
 
 -- | A hash-based message authentication code. Equality comparisons on this type
@@ -74,7 +74,7 @@ instance Eq HMAC where
           (==0) <$> cryptoMemcmp a' b' size
 
 instance Show HMAC where
-  show (HMAC m) = show (Digest m)
+  show (HMAC m) = showHex m
 
 -- | Creates an HMAC according to the given 'Algorithm'.
 hmac :: Algorithm -> SecretKey -> Lazy.ByteString -> Either [Error] HMAC

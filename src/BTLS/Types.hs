@@ -14,11 +14,10 @@
 
 module BTLS.Types where
 
-import Data.Bits (Bits((.&.)), shiftR)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as ByteString
-import Data.Char (intToDigit)
-import Data.Word (Word8)
+import qualified Data.ByteString.Base16 as ByteString.Base16
+import qualified Data.ByteString.Char8 as ByteString.Char8
 import Foreign (Ptr)
 
 import BTLS.BoringSSL.Base (EVPMD)
@@ -39,11 +38,7 @@ newtype Digest = Digest ByteString
   deriving (Eq, Ord)
 
 instance Show Digest where
-  show (Digest d) = ByteString.foldr showHexPadded [] d
-    where
-      showHexPadded b xs =
-        hexit (b `shiftR` 4 .&. 0x0f) : hexit (b .&. 0x0f) : xs
-      hexit = intToDigit . fromIntegral :: Word8 -> Char
+  show (Digest d) = showHex d
 
 -- | A salt. Equality comparisons on this type are variable-time.
 newtype Salt = Salt ByteString
@@ -57,3 +52,6 @@ noSalt = Salt ByteString.empty
 -- this type are variable-time.
 newtype SecretKey = SecretKey ByteString
   deriving (Eq, Ord, Show)
+
+showHex :: ByteString -> String
+showHex = ByteString.Char8.unpack . ByteString.Base16.encode
