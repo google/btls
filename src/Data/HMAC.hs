@@ -23,7 +23,7 @@
 -}
 module Data.HMAC
   ( -- * Computing HMACs
-    HMAC
+    HMAC(HMAC)
   , hmac
 
     -- * Cryptographic hash algorithms

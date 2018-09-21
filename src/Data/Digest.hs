@@ -22,7 +22,7 @@
 -}
 module Data.Digest
   ( -- * Computing digests
-    Digest
+    Digest(Digest)
   , hash
 
     -- * Digest algorithms

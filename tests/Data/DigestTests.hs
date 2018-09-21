@@ -24,5 +24,4 @@ tests :: TestTree
 tests = testGroup "Data.Digest"
   [ Data.Digest.MD5Tests.tests
   , Data.Digest.SHA1Tests.tests
-  , Data.Digest.SHA2Tests.tests
-  ]
+  , Data.Digest.SHA2Tests.tests ]

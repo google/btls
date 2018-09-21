@@ -12,52 +12,55 @@
 -- License for the specific language governing permissions and limitations under
 -- the License.
 
-{-# LANGUAGE OverloadedStrings #-}
-
 module Data.Digest.HashTests
-  ( tableTestCase
+  ( hashTestCase
   , testAgainstCoreutils
   , testAgainstOpenSSL
+  , hexDigest
   ) where
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as ByteString
-import System.IO (hClose, hGetContents, hSetBinaryMode)
+import qualified Data.ByteString.Char8 as ByteString.Char8
+import qualified Data.ByteString.Lazy as Lazy (ByteString)
+import qualified Data.ByteString.Lazy as ByteString.Lazy
+import System.IO (hClose, hSetBinaryMode)
 import System.Process
   (CreateProcess(std_in, std_out), StdStream(CreatePipe), createProcess_, proc)
-import qualified Test.SmallCheck.Series.ByteString as ByteString.Series
+import qualified Test.SmallCheck.Series.ByteString.Lazy as ByteString.Lazy.Series
 import Test.Tasty (TestTree)
 import Test.Tasty.HUnit ((@?=), testCase)
 import Test.Tasty.SmallCheck (Property, monadic, over)
 
-tableTestCase :: (ByteString -> String) -> (String, ByteString) -> TestTree
-tableTestCase f (output, input) = testCase description (f input @?= output)
-  where
-    description =
-      let (x, y) = ByteString.splitAt 11 input
-      in show (x `ByteString.append` if ByteString.null y then "" else "...")
+import BTLS.TestUtilities (abbreviate, hex)
+import Data.Digest (Algorithm, Digest(Digest), hash)
 
-testAgainstCoreutils :: (ByteString -> String) -> FilePath -> Property IO
-testAgainstCoreutils f prog =
-  over ByteString.Series.enumW8s $ \s ->
-    monadic $ do
-      theirs <- runExternal (proc prog ["-b"]) s
-      return (f s == head (words theirs))
+hashTestCase :: Algorithm -> Lazy.ByteString -> ByteString -> TestTree
+hashTestCase algo input output =
+  testCase (abbreviate input) $ hash algo input @?= hexDigest output
+
+testAgainstCoreutils :: Algorithm -> FilePath -> Property IO
+testAgainstCoreutils algo prog =
+  over ByteString.Lazy.Series.enumW8s $ \s -> monadic $ do
+    theirs <- externalHash (proc prog ["-b"]) s head
+    return $ hash algo s == theirs
+
+testAgainstOpenSSL :: Algorithm -> String -> Property IO
+testAgainstOpenSSL algo flag =
+  over ByteString.Lazy.Series.enumW8s $ \s -> monadic $ do
+    theirs <- externalHash (proc "openssl" ["dgst", '-' : flag]) s (!!1)
+    return $ hash algo s == theirs
 
 -- | Runs an external hashing command with the specified standard input. Assumes
 -- that the process will exit when its standard input is closed.
-runExternal :: CreateProcess -> ByteString -> IO String
-runExternal p s = do
+externalHash :: CreateProcess -> Lazy.ByteString -> ([ByteString] -> ByteString) -> IO Digest
+externalHash p s toDigest = do
   (Just stdin, Just stdout, _, _) <-
     createProcess_ "runExternal" (p {std_in = CreatePipe, std_out = CreatePipe})
   hSetBinaryMode stdin True
-  ByteString.hPut stdin s
+  ByteString.Lazy.hPut stdin s
   hClose stdin -- causes process to exit
-  hGetContents stdout
+  hexDigest . toDigest . ByteString.Char8.words <$> ByteString.hGetContents stdout
 
-testAgainstOpenSSL :: (ByteString -> String) -> String -> Property IO
-testAgainstOpenSSL f flag =
-  over ByteString.Series.enumW8s $ \s ->
-    monadic $ do
-      theirs <- runExternal (proc "openssl" ["dgst", '-' : flag]) s
-      return (f s == words theirs !! 1)
+hexDigest :: ByteString -> Digest
+hexDigest = Digest . hex

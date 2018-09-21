@@ -127,6 +127,7 @@ test-suite tests
                        -optl-Wl,-z,relro -optl-Wl,-z,now -optl-Wl,-s
   main-is:             Tests.hs
   other-modules:       BTLS.Assertions
+                     , BTLS.TestUtilities
                      , Codec.Crypto.HKDFTests
                      , Data.DigestTests
                      , Data.Digest.HashTests
