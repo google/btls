@@ -18,12 +18,24 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Base16 as ByteString.Base16
 import qualified Data.ByteString.Char8 as ByteString.Char8
-import Foreign (Ptr)
+import Foreign (Ptr, nullPtr)
+import Foreign.C (peekCString)
+import Foreign.Marshal.Unsafe (unsafeLocalState)
 
 import BTLS.BoringSSL.Base (EVPMD)
+import BTLS.BoringSSL.Digest (evpMDType)
+import BTLS.BoringSSL.Obj (objNID2SN)
 
 -- | A cryptographic hash function.
 newtype Algorithm = Algorithm (Ptr EVPMD)
+
+instance Eq Algorithm where
+  Algorithm a == Algorithm b = evpMDType a == evpMDType b
+
+instance Show Algorithm where
+  show (Algorithm md) =
+    let sn = objNID2SN (evpMDType md) in
+    if sn == nullPtr then "<algorithm>" else unsafeLocalState (peekCString sn)
 
 -- | Context or application-specific information. Equality comparisons on this
 -- type are variable-time.

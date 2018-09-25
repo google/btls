@@ -78,6 +78,7 @@ library
                      , BTLS.BoringSSL.HKDF
                      , BTLS.BoringSSL.HMAC
                      , BTLS.BoringSSL.Mem
+                     , BTLS.BoringSSL.Obj
                      , BTLS.BoringSSL.Rand
                      , BTLS.Buffer
                      , BTLS.CreateWithFinalizer

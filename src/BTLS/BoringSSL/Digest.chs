@@ -19,6 +19,7 @@ module BTLS.BoringSSL.Digest
   , mallocEVPMDCtx
   , evpDigestInitEx, evpDigestUpdate, evpDigestFinalEx
   , evpMaxMDSize
+  , evpMDType
   ) where
 
 import Data.ByteString (ByteString)
@@ -62,6 +63,8 @@ foreign import ccall "&btlsFinalizeEVPMDCtx"
 
 evpMaxMDSize :: Int
 evpMaxMDSize = {#const EVP_MAX_MD_SIZE#}
+
+{#fun pure EVP_MD_type as evpMDType {`Ptr EVPMD'} -> `Int'#}
 
 instance Storable EVPMDCtx where
   sizeOf _ = {#sizeof EVP_MD_CTX#}

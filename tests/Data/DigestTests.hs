@@ -15,13 +15,27 @@
 module Data.DigestTests (tests) where
 
 import Test.Tasty (TestTree, testGroup)
+import Test.Tasty.HUnit ((@?), testCase)
 
+import Data.Digest (md5, sha1, sha224, sha256, sha384, sha512)
 import qualified Data.Digest.MD5Tests
 import qualified Data.Digest.SHA1Tests
 import qualified Data.Digest.SHA2Tests
 
 tests :: TestTree
 tests = testGroup "Data.Digest"
-  [ Data.Digest.MD5Tests.tests
+  [ showTests
+  , Data.Digest.MD5Tests.tests
   , Data.Digest.SHA1Tests.tests
   , Data.Digest.SHA2Tests.tests ]
+
+showTests = testGroup "show"
+  [ testNonEmpty "MD5" (show md5)
+  , testNonEmpty "SHA-1" (show sha1)
+  , testNonEmpty "SHA-224" (show sha224)
+  , testNonEmpty "SHA-256" (show sha256)
+  , testNonEmpty "SHA-384" (show sha384)
+  , testNonEmpty "SHA-512" (show sha512) ]
+  where
+    testNonEmpty description string = testCase description $
+      not (null string) @? "expected: nonempty string\n but got: " ++ show string
