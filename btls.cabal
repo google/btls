@@ -83,6 +83,7 @@ library
                      , BTLS.Buffer
                      , BTLS.CreateWithFinalizer
                      , BTLS.Result
+                     , BTLS.Show
                      , BTLS.Types
   c-sources:           cbits/btls.c
   -- Use special names for the BoringSSL libraries to avoid accidentally pulling

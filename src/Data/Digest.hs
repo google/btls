@@ -38,6 +38,7 @@ module Data.Digest
   , sha1
   ) where
 
+import Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as Lazy (ByteString)
 import qualified Data.ByteString.Lazy as ByteString.Lazy
 import Foreign.Marshal.Unsafe (unsafeLocalState)
@@ -45,7 +46,18 @@ import Foreign.Marshal.Unsafe (unsafeLocalState)
 import BTLS.BoringSSL.Base
 import BTLS.BoringSSL.Digest
 import BTLS.Buffer (onBufferOfMaxSize)
-import BTLS.Types (Algorithm(Algorithm), Digest(Digest))
+import BTLS.Show (showHex)
+import BTLS.Types (Algorithm(Algorithm))
+
+-- | The result of a hash operation. Equality comparisons on this type are
+-- variable-time.
+--
+-- The 'Show' instance for this type displays the digest as a hexadecimal string.
+newtype Digest = Digest ByteString
+  deriving (Eq, Ord)
+
+instance Show Digest where
+  show (Digest d) = showHex d
 
 -- | Message Digest 5, a 128-bit digest defined in
 -- [RFC 1321](https://tools.ietf.org/html/rfc1321). This algorithm is

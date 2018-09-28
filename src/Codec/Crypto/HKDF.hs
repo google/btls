@@ -23,10 +23,9 @@
 -}
 module Codec.Crypto.HKDF
   ( -- * Computing keys
-    SecretKey(SecretKey)
-  , hkdf
-  , extract
-  , expand
+    hkdf, HKDFParams(..)
+  , extract, ExtractParams(..)
+  , expand, ExpandParams(..)
 
     -- * Cryptographic hash algorithms
   , Algorithm
@@ -36,17 +35,6 @@ module Codec.Crypto.HKDF
     -- | The SHA-2 family of hash functions is defined in
     -- [FIPS 180-4](https://csrc.nist.gov/publications/detail/fips/180/4/final).
   , sha224, sha256, sha384, sha512
-
-    -- * Salt
-
-    -- | You may salt the hash used to generate the key. If you do not wish to
-    -- do so, specify 'noSalt' as the salt.
-  , Salt(Salt), noSalt
-
-    -- * Associated data
-    -- | You may mix in arbitrary data when generating a key. If you do not wish
-    -- to do so, specify the empty string as the associated data.
-  , AssociatedData(AssociatedData)
 
     -- * Error handling
   , Error
@@ -58,6 +46,7 @@ module Codec.Crypto.HKDF
 import Control.Monad ((>=>))
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Except (runExceptT)
+import Data.ByteString (ByteString)
 import Foreign (allocaArray)
 import Foreign.Marshal.Unsafe (unsafeLocalState)
 
@@ -65,44 +54,44 @@ import BTLS.BoringSSL.Digest (evpMaxMDSize)
 import BTLS.BoringSSL.HKDF
 import BTLS.Buffer (onBufferOfMaxSize', packCUStringLen)
 import BTLS.Result (Error, check)
-import BTLS.Types
-  ( Algorithm(Algorithm), AssociatedData(AssociatedData), Salt(Salt)
-  , SecretKey(SecretKey), noSalt
-  )
+import BTLS.Types (Algorithm(Algorithm))
 import Data.Digest (md5, sha1, sha224, sha256, sha384, sha512)
 
--- | Computes an HKDF. It is defined by
---
--- prop> hkdf md salt info len = extract md salt >=> expand md info len
---
--- but may be faster than calling the two functions individually.
-hkdf ::
-     Algorithm
-  -> Salt
-  -> AssociatedData
-  -> Int -- ^ The length of the derived key, in bytes.
-  -> SecretKey
-  -> Either [Error] SecretKey
-hkdf md salt info outLen = extract md salt >=> expand md info outLen
+-- | Computes an HKDF. It is defined as the composition of 'extract' and
+-- 'expand' but may be faster than calling the two functions individually.
+hkdf :: HKDFParams -> ByteString -> Either [Error] ByteString
+hkdf (HKDFParams md salt info outLen) =
+  extract (ExtractParams md salt) >=> expand (ExpandParams md info outLen)
+
+data HKDFParams = HKDFParams
+  { algorithm :: Algorithm
+  , salt :: ByteString
+  , associatedData :: ByteString
+  , secretLen :: Int
+  } deriving (Eq, Show)
 
 -- | Computes an HKDF pseudorandom key (PRK).
-extract :: Algorithm -> Salt -> SecretKey -> Either [Error] SecretKey
-extract (Algorithm md) (Salt salt) (SecretKey secret) =
-  fmap SecretKey $
-    unsafeLocalState $
-      onBufferOfMaxSize' evpMaxMDSize $ \pOutKey pOutLen ->
-        check $ hkdfExtract pOutKey pOutLen md secret salt
+extract :: ExtractParams -> ByteString -> Either [Error] ByteString
+extract (ExtractParams (Algorithm md) salt) secret =
+  unsafeLocalState $
+    onBufferOfMaxSize' evpMaxMDSize $ \pOutKey pOutLen ->
+      check $ hkdfExtract pOutKey pOutLen md secret salt
+
+data ExtractParams = ExtractParams
+  { extractAlgorithm :: Algorithm
+  , extractSalt :: ByteString
+  } deriving (Eq, Show)
 
 -- | Computes HKDF output key material (OKM).
-expand ::
-     Algorithm
-  -> AssociatedData
-  -> Int -- ^ The length of the OKM, in bytes.
-  -> SecretKey
-  -> Either [Error] SecretKey
-expand (Algorithm md) (AssociatedData info) outLen (SecretKey secret) =
-  fmap SecretKey $
-    unsafeLocalState $
-      allocaArray outLen $ \pOutKey -> runExceptT $ do
-        check $ hkdfExpand pOutKey outLen md secret info
-        lift $ packCUStringLen (pOutKey, outLen)
+expand :: ExpandParams -> ByteString -> Either [Error] ByteString
+expand (ExpandParams (Algorithm md) info outLen) secret =
+  unsafeLocalState $
+    allocaArray outLen $ \pOutKey -> runExceptT $ do
+      check $ hkdfExpand pOutKey outLen md secret info
+      lift $ packCUStringLen (pOutKey, outLen)
+
+data ExpandParams = ExpandParams
+  { expandAlgorithm :: Algorithm
+  , expandAssociatedData :: ByteString
+  , expandSecretLen :: Int
+  } deriving (Eq, Show)

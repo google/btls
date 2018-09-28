@@ -24,7 +24,7 @@
 module Data.HMAC
   ( -- * Computing HMACs
     HMAC(HMAC)
-  , hmac
+  , hmac, HMACParams(..)
 
     -- * Cryptographic hash algorithms
   , Algorithm
@@ -34,9 +34,6 @@ module Data.HMAC
     -- | The SHA-2 family of hash functions is defined in
     -- [FIPS 180-4](https://csrc.nist.gov/publications/detail/fips/180/4/final).
   , sha224, sha256, sha384, sha512
-
-    -- * Keys
-  , SecretKey(SecretKey)
 
     -- * Error handling
   , Error
@@ -59,7 +56,8 @@ import BTLS.BoringSSL.HMAC
 import BTLS.BoringSSL.Mem (cryptoMemcmp)
 import BTLS.Buffer (onBufferOfMaxSize)
 import BTLS.Result (Error, check)
-import BTLS.Types (Algorithm(Algorithm), SecretKey(SecretKey), showHex)
+import BTLS.Show (showHex)
+import BTLS.Types (Algorithm(Algorithm))
 import Data.Digest (md5, sha1, sha224, sha256, sha384, sha512)
 
 -- | A hash-based message authentication code. Equality comparisons on this type
@@ -76,11 +74,16 @@ instance Eq HMAC where
 instance Show HMAC where
   show (HMAC m) = showHex m
 
--- | Creates an HMAC according to the given 'Algorithm'.
-hmac :: Algorithm -> SecretKey -> Lazy.ByteString -> Either [Error] HMAC
-hmac (Algorithm md) (SecretKey key) bytes =
+-- | Creates an HMAC.
+hmac :: HMACParams -> Lazy.ByteString -> Either [Error] HMAC
+hmac (HMACParams (Algorithm md) key) bytes =
   unsafeLocalState $ runExceptT $ do
     ctx <- lift mallocHMACCtx
     check $ hmacInitEx ctx key md noEngine
     lift $ mapM_ (hmacUpdate ctx) (ByteString.Lazy.toChunks bytes)
     lift $ HMAC <$> onBufferOfMaxSize evpMaxMDSize (hmacFinal ctx)
+
+data HMACParams = HMACParams
+  { algorithm :: Algorithm
+  , secretKey :: ByteString
+  } deriving (Eq, Show)

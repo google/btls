@@ -25,8 +25,8 @@ import Test.Tasty.HUnit (testCase)
 
 import BTLS.Assertions (isRightAndHolds)
 import BTLS.TestUtilities (abbreviate, hex)
-import Data.Digest (Algorithm, md5, sha1, sha224, sha256, sha384, sha512)
-import Data.HMAC (HMAC(HMAC), SecretKey(SecretKey), hmac)
+import Data.Digest (md5, sha1, sha224, sha256, sha384, sha512)
+import Data.HMAC (HMAC(HMAC), HMACParams(..), hmac)
 
 tests :: TestTree
 tests = testGroup "Data.HMAC"
@@ -34,56 +34,120 @@ tests = testGroup "Data.HMAC"
   , testFIPS198
   , testRFC4231 ]
 
-hmacTestCase :: Algorithm -> ByteString -> Lazy.ByteString -> ByteString -> TestTree
-hmacTestCase algo key input output = hmacTestCase' (abbreviate input) algo key input output
+hmacTestCase :: HMACParams -> Lazy.ByteString -> ByteString -> TestTree
+hmacTestCase params input output = hmacTestCase' (abbreviate input) params input output
 
-hmacTestCase' :: String -> Algorithm -> ByteString -> Lazy.ByteString -> ByteString -> TestTree
-hmacTestCase' description algo key input output =
-  testCase description $ hmac algo (SecretKey key) input `isRightAndHolds` hexHMAC output
-
-md5TestCase, sha1TestCase :: ByteString -> Lazy.ByteString -> ByteString -> TestTree
-md5TestCase = hmacTestCase md5
-sha1TestCase = hmacTestCase sha1
+hmacTestCase' :: String -> HMACParams -> Lazy.ByteString -> ByteString -> TestTree
+hmacTestCase' description params input output =
+  testCase description $ hmac params input `isRightAndHolds` hexHMAC output
 
 -- | Tests from RFC 2202.
 testRFC2202 = testGroup "RFC 2202" [testMD5, testSHA1]
   where testMD5 = testGroup "MD5"
-          [ md5TestCase (ByteString.replicate 16 0x0b) "Hi There" "9294727a3638bb1c13f48ef8158bfc9d"
-          , md5TestCase "Jefe" "what do ya want for nothing?" "750c783e6ab0b503eaa86e310a5db738"
-          , md5TestCase (ByteString.replicate 16 0xaa) (ByteString.Lazy.replicate 50 0xdd) "56be34521d144c88dbb8c733f0e8b3f6"
-          , md5TestCase (ByteString.pack [0x01 .. 0x19]) (ByteString.Lazy.replicate 50 0xcd) "697eaf0aca3a3aea3a75164746ffaa79"
-          , md5TestCase (ByteString.replicate 16 0x0c) ("Test With Truncation") "56461ef2342edc00f9bab995690efd4c"
-          , md5TestCase (ByteString.replicate 80 0xaa) ("Test Using Larger Than Block-Size Key - Hash Key First") "6b1ab7fe4bd7bf8f0b62e6ce61b9d0cd"
-          , md5TestCase (ByteString.replicate 80 0xaa) ("Test Using Larger Than Block-Size Key and Larger Than One Block-Size Data") "6f630fad67cda0ee1fb1f562db3aa53e" ]
+          [ hmacTestCase
+              HMACParams { algorithm = md5
+                         , secretKey = ByteString.replicate 16 0x0b }
+              "Hi There"
+              "9294727a3638bb1c13f48ef8158bfc9d"
+          , hmacTestCase
+              HMACParams { algorithm = md5
+                         , secretKey = "Jefe" }
+              "what do ya want for nothing?"
+              "750c783e6ab0b503eaa86e310a5db738"
+          , hmacTestCase
+              HMACParams { algorithm = md5
+                         , secretKey = ByteString.replicate 16 0xaa }
+              (ByteString.Lazy.replicate 50 0xdd)
+              "56be34521d144c88dbb8c733f0e8b3f6"
+          , hmacTestCase
+              HMACParams { algorithm = md5
+                         , secretKey = ByteString.pack [0x01 .. 0x19] }
+              (ByteString.Lazy.replicate 50 0xcd)
+              "697eaf0aca3a3aea3a75164746ffaa79"
+          , hmacTestCase
+              HMACParams { algorithm = md5
+                         , secretKey = ByteString.replicate 16 0x0c }
+              "Test With Truncation"
+              "56461ef2342edc00f9bab995690efd4c"
+          , hmacTestCase
+              HMACParams { algorithm = md5
+                         , secretKey = ByteString.replicate 80 0xaa }
+              "Test Using Larger Than Block-Size Key - Hash Key First"
+              "6b1ab7fe4bd7bf8f0b62e6ce61b9d0cd"
+          , hmacTestCase
+              HMACParams { algorithm = md5
+                         , secretKey = ByteString.replicate 80 0xaa }
+              "Test Using Larger Than Block-Size Key and Larger Than One Block-Size Data"
+              "6f630fad67cda0ee1fb1f562db3aa53e" ]
         testSHA1 = testGroup "SHA-1"
-          [ sha1TestCase (ByteString.replicate 20 0x0b) ("Hi There") "b617318655057264e28bc0b6fb378c8ef146be00"
-          , sha1TestCase "Jefe" "what do ya want for nothing?" "effcdf6ae5eb2fa2d27416d5f184df9c259a7c79"
-          , sha1TestCase (ByteString.replicate 20 0xaa) (ByteString.Lazy.replicate 50 0xdd) "125d7342b9ac11cd91a39af48aa17b4f63f175d3"
-          , sha1TestCase (ByteString.pack [0x01 .. 0x19]) (ByteString.Lazy.replicate 50 0xcd) "4c9007f4026250c6bc8414f9bf50c86c2d7235da"
-          , sha1TestCase (ByteString.replicate 20 0x0c) ("Test With Truncation") "4c1a03424b55e07fe7f27be1d58bb9324a9a5a04"
-          , sha1TestCase (ByteString.replicate 80 0xaa) ("Test Using Larger Than Block-Size Key - Hash Key First") "aa4ae5e15272d00e95705637ce8a3b55ed402112"
-          , sha1TestCase (ByteString.replicate 80 0xaa) ("Test Using Larger Than Block-Size Key and Larger Than One Block-Size Data") "e8e99d0f45237d786d6bbaa7965c7808bbff1a91" ]
+          [ hmacTestCase
+              HMACParams { algorithm = sha1
+                         , secretKey = ByteString.replicate 20 0x0b }
+              "Hi There"
+              "b617318655057264e28bc0b6fb378c8ef146be00"
+          , hmacTestCase
+              HMACParams { algorithm = sha1
+                         , secretKey = "Jefe" }
+              "what do ya want for nothing?"
+              "effcdf6ae5eb2fa2d27416d5f184df9c259a7c79"
+          , hmacTestCase
+              HMACParams { algorithm = sha1
+                         , secretKey = ByteString.replicate 20 0xaa }
+              (ByteString.Lazy.replicate 50 0xdd)
+              "125d7342b9ac11cd91a39af48aa17b4f63f175d3"
+          , hmacTestCase
+              HMACParams { algorithm = sha1
+                         , secretKey = ByteString.pack [0x01 .. 0x19] }
+              (ByteString.Lazy.replicate 50 0xcd)
+              "4c9007f4026250c6bc8414f9bf50c86c2d7235da"
+          , hmacTestCase
+              HMACParams { algorithm = sha1
+                         , secretKey = ByteString.replicate 20 0x0c }
+              "Test With Truncation"
+              "4c1a03424b55e07fe7f27be1d58bb9324a9a5a04"
+          , hmacTestCase
+              HMACParams { algorithm = sha1
+                         , secretKey = ByteString.replicate 80 0xaa }
+              "Test Using Larger Than Block-Size Key - Hash Key First"
+              "aa4ae5e15272d00e95705637ce8a3b55ed402112"
+          , hmacTestCase
+              HMACParams { algorithm = sha1
+                         , secretKey = ByteString.replicate 80 0xaa }
+              "Test Using Larger Than Block-Size Key and Larger Than One Block-Size Data"
+              "e8e99d0f45237d786d6bbaa7965c7808bbff1a91" ]
 
 -- | Tests from FIPS 198.
 testFIPS198 = testGroup "FIPS 198 (SHA-1)" $
-  [ sha1TestCase (ByteString.pack [0 .. 0x3f]) "Sample #1" "4f4ca3d5d68ba7cc0a1208c9c61e9c5da0403c0a"
-  , sha1TestCase (ByteString.pack [0x30 .. 0x43]) "Sample #2" "0922d3405faa3d194f82a45830737d5cc6c75d24"
-  , sha1TestCase (ByteString.pack [0x50 .. 0xb3]) "Sample #3" "bcf41eab8bb2d802f3d05caf7cb092ecf8d1a3aa"
+  [ hmacTestCase
+      HMACParams { algorithm = sha1
+                 , secretKey = ByteString.pack [0 .. 0x3f] }
+      "Sample #1"
+      "4f4ca3d5d68ba7cc0a1208c9c61e9c5da0403c0a"
+  , hmacTestCase
+      HMACParams { algorithm = sha1
+                 , secretKey = ByteString.pack [0x30 .. 0x43] }
+      "Sample #2"
+      "0922d3405faa3d194f82a45830737d5cc6c75d24"
+  , hmacTestCase
+      HMACParams { algorithm = sha1
+                 , secretKey = ByteString.pack [0x50 .. 0xb3] }
+      "Sample #3"
+      "bcf41eab8bb2d802f3d05caf7cb092ecf8d1a3aa"
   ] ++ [truncatedFIPS198Test]
   where truncatedFIPS198Test =
           let input = "Sample #4" in
           testCase (abbreviate input) $
-            (truncateHMAC 24 <$> hmac sha1 (SecretKey $ ByteString.pack [0x70 .. 0xa0]) input)
+            (truncateHMAC 24 <$> hmac HMACParams { algorithm = sha1, secretKey = ByteString.pack [0x70 .. 0xa0] } input)
             `isRightAndHolds` hexHMAC "9ea886efe268dbecce420c75"
 
 -- | Tests from RFC 4231.
 testRFC4231 = testGroup "RFC 4231" $
   let rfc4231TestCase key input sha224Output sha256Output sha384Output sha512Output =
         testGroup (abbreviate input)
-          [ hmacTestCase' "SHA-224" sha224 key input sha224Output
-          , hmacTestCase' "SHA-256" sha256 key input sha256Output
-          , hmacTestCase' "SHA-384" sha384 key input sha384Output
-          , hmacTestCase' "SHA-512" sha512 key input sha512Output ] in
+          [ hmacTestCase' "SHA-224" HMACParams { algorithm = sha224, secretKey = key } input sha224Output
+          , hmacTestCase' "SHA-256" HMACParams { algorithm = sha256, secretKey = key } input sha256Output
+          , hmacTestCase' "SHA-384" HMACParams { algorithm = sha384, secretKey = key } input sha384Output
+          , hmacTestCase' "SHA-512" HMACParams { algorithm = sha512, secretKey = key } input sha512Output ] in
   [ rfc4231TestCase (ByteString.replicate 20 0x0b) "Hi There"
       "896fb1128abbdf196832107cd49df33f47b4b1169912ba4f53684b22"
       "b0344c61d8db38535ca8afceaf0bf12b881dc200c9833da726e9376c2e32cff7"
@@ -116,11 +180,12 @@ testRFC4231 = testGroup "RFC 4231" $
       "e37b6a775dc87dbaa4dfa9f96e5e3ffddebd71f8867289865df5a32d20cdc944b6022cac3c4982b10d5eeb55c3e4de15134676fb6de0446065c97440fa8c6a58"
   ] ++ [truncatedRFC4231Test]
   where truncatedRFC4231Test =
-          let key = SecretKey $ ByteString.replicate 20 0x0c
+          let key = ByteString.replicate 20 0x0c
               input = "Test With Truncation"
               truncatedTestCase description algo output =
                 testCase description $
-                  (truncateHMAC 32 <$> hmac algo key input) `isRightAndHolds` hexHMAC output in
+                  (truncateHMAC 32 <$> hmac HMACParams { algorithm = algo, secretKey = key } input)
+                  `isRightAndHolds` hexHMAC output in
           testGroup (abbreviate input)
             [ truncatedTestCase "SHA-224" sha224 "0e2aea68a90c8d37c988bcdb9fca6fa8"
             , truncatedTestCase "SHA-256" sha256 "a3b6167473100ee06e0c796c2955552b"

@@ -12,23 +12,11 @@
 -- License for the specific language governing permissions and limitations under
 -- the License.
 
-module BTLS.Types where
+module BTLS.Show where
 
-import Foreign (Ptr, nullPtr)
-import Foreign.C (peekCString)
-import Foreign.Marshal.Unsafe (unsafeLocalState)
+import Data.ByteString (ByteString)
+import qualified Data.ByteString.Base16 as ByteString.Base16
+import qualified Data.ByteString.Char8 as ByteString.Char8
 
-import BTLS.BoringSSL.Base (EVPMD)
-import BTLS.BoringSSL.Digest (evpMDType)
-import BTLS.BoringSSL.Obj (objNID2SN)
-
--- | A cryptographic hash function.
-newtype Algorithm = Algorithm (Ptr EVPMD)
-
-instance Eq Algorithm where
-  Algorithm a == Algorithm b = evpMDType a == evpMDType b
-
-instance Show Algorithm where
-  show (Algorithm md) =
-    let sn = objNID2SN (evpMDType md) in
-    if sn == nullPtr then "<algorithm>" else unsafeLocalState (peekCString sn)
+showHex :: ByteString -> String
+showHex = ByteString.Char8.unpack . ByteString.Base16.encode
