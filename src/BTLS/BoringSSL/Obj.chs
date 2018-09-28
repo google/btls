@@ -16,8 +16,15 @@ module BTLS.BoringSSL.Obj
   ( objNID2SN
   ) where
 
-import Foreign.C (CString)
+import Foreign (nullPtr)
+import Foreign.C (CString, peekCString)
 
 #include <openssl/obj.h>
 
-{#fun pure OBJ_nid2sn as objNID2SN {`Int'} -> `CString'#}
+{#fun pure OBJ_nid2sn as objNID2SN
+  {`Int'} -> `Maybe String' peekCStringOrNull*#}
+
+peekCStringOrNull :: CString -> IO (Maybe String)
+peekCStringOrNull ptr
+  | ptr == nullPtr = return Nothing
+  | otherwise      = Just <$> peekCString ptr

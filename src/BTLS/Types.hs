@@ -14,9 +14,7 @@
 
 module BTLS.Types where
 
-import Foreign (Ptr, nullPtr)
-import Foreign.C (peekCString)
-import Foreign.Marshal.Unsafe (unsafeLocalState)
+import Foreign (Ptr)
 
 import BTLS.BoringSSL.Base (EVPMD)
 import BTLS.BoringSSL.Digest (evpMDType)
@@ -29,6 +27,4 @@ instance Eq Algorithm where
   Algorithm a == Algorithm b = evpMDType a == evpMDType b
 
 instance Show Algorithm where
-  show (Algorithm md) =
-    let sn = objNID2SN (evpMDType md) in
-    if sn == nullPtr then "<algorithm>" else unsafeLocalState (peekCString sn)
+  show (Algorithm md) = maybe "<algorithm>" id (objNID2SN (evpMDType md))
