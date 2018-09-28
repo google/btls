@@ -26,7 +26,8 @@ import qualified Data.ByteString.Unsafe as ByteString
 import Foreign (Storable(peek), Ptr, alloca, allocaArray, castPtr)
 import Foreign.C.Types
 
-unsafeUseAsCBuffer :: ByteString -> ((Ptr a, CULong) -> IO b) -> IO b
+unsafeUseAsCBuffer ::
+  Integral size => ByteString -> ((Ptr a, size) -> IO b) -> IO b
 unsafeUseAsCBuffer bs f =
   ByteString.unsafeUseAsCStringLen bs $ \(pStr, len) ->
     f (castPtr pStr, fromIntegral len)

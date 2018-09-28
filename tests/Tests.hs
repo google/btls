@@ -18,13 +18,15 @@ module Main
 
 import Test.Tasty (defaultMain, testGroup)
 
+import qualified Codec.Crypto.EncryptionTests
 import qualified Codec.Crypto.HKDFTests
 import qualified Data.DigestTests
 import qualified Data.HMACTests
 
 main :: IO ()
 main = defaultMain $ testGroup "btls"
-  [ Codec.Crypto.HKDFTests.tests
+  [ Codec.Crypto.EncryptionTests.tests
+  , Codec.Crypto.HKDFTests.tests
   , Data.DigestTests.tests
   , Data.HMACTests.tests
   ]

@@ -17,6 +17,7 @@
 module BTLS.TestUtilities
   ( abbreviate
   , hex
+  , showHex
   ) where
 
 import qualified Data.ByteString.Base16 as Base16
@@ -47,3 +48,6 @@ hex s =
   case Base16.decode s of
     (r, "") -> r
     _ -> error $ "invalid hex string " ++ unpack s
+
+showHex :: ByteString -> String
+showHex = unpack . Base16.encode

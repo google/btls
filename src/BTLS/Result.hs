@@ -15,7 +15,7 @@
 module BTLS.Result
   ( alwaysSucceeds, requireSuccess
   , Result, Error, file, line, errorData, errorDataIsHumanReadable
-  , check
+  , check, check'
   ) where
 
 import Control.Concurrent (rtsSupportsBoundThreads, runInBoundThread)
@@ -70,10 +70,13 @@ dequeueError = do
   return (Just (errorFromTuple e))
 
 check :: IO Int -> ExceptT [Error] IO ()
-check f = do
+check = ExceptT . check'
+
+check' :: IO Int -> IO (Either [Error] ())
+check' f = do
   unless rtsSupportsBoundThreads $
     error "btls requires the threaded runtime. Please recompile with -threaded."
-  ExceptT $ runInBoundThread $ do
+  runInBoundThread $ do
     -- TODO(bbaren): Assert that the error queue is clear
     r <- f
     if r == 1

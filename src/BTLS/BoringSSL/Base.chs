@@ -36,6 +36,15 @@ data EVPMDCtx
 data EVPMD
 {#pointer *EVP_MD as 'Ptr EVPMD' -> EVPMD nocode#}
 
+-- | The BoringSSL @EVP_CIPHER_CTX@ type, representing the state of a pending
+-- encryption or decryption operation.
+data EVPCipherCtx
+{#pointer *EVP_CIPHER_CTX as 'Ptr EVPCipherCtx' -> EVPCipherCtx nocode#}
+
+-- | The BoringSSL @EVP_CIPHER@ type, representing a cipher algorithm.
+data EVPCipher
+{#pointer *EVP_CIPHER as 'Ptr EVPCipher' -> EVPCipher nocode#}
+
 -- | The BoringSSL @HMAC_CTX@ type, representing the state of a pending HMAC
 -- operation.
 data HMACCtx

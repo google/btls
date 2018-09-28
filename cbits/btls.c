@@ -12,7 +12,12 @@
 // License for the specific language governing permissions and limitations under
 // the License.
 
+#include <openssl/cipher.h>
 #include <openssl/digest.h>
+
+void btlsFinalizeEVPCipherCtx(EVP_CIPHER_CTX* const ctx) {
+  (void)EVP_CIPHER_CTX_cleanup(ctx);
+}
 
 void btlsFinalizeEVPMDCtx(EVP_MD_CTX* const ctx) {
   (void)EVP_MD_CTX_cleanup(ctx);
